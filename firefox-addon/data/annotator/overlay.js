@@ -1,0 +1,72 @@
+/*
+Canvas overlay object. It is drawed on top of a whole web page
+and provides a fabric.js wrapper.
+
+Optionally, it can disable all web page interactions.
+*/
+function CanvasOverlay(id='scrapely-overlay') {
+    this.interactionsBlocked = false;
+    this._createCanvas(id);
+    this._enableAutoResize();
+}
+
+CanvasOverlay.prototype = {
+    _createCanvas: function(id) {
+        var canvasEl = document.createElement("canvas");
+        canvasEl.id = id;
+        $(canvasEl).css({
+            position: "absolute",
+            left: 0,
+            top: 0,
+            "z-index": 10000000,
+            'pointer-events': 'none',
+        });
+        document.body.appendChild(canvasEl);
+        this.canvasEl = canvasEl;
+        this.canvas = new fabric.StaticCanvas(canvasEl);
+        this.canvas.backgroundColor = null;
+    },
+
+    _enableAutoResize: function () {
+        this._resizeToWindow = () => {
+            this.canvas.setHeight($(document).height());
+            this.canvas.setWidth($(document).width());
+            this.emit("resize");
+            this.canvas.renderAll();
+        };
+
+        $(window).on('resize', this._resizeToWindow);
+        this._resizeTimer = setInterval(this._resizeToWindow, 1000);
+        this._resizeToWindow();
+    },
+
+    destroy: function () {
+        console.log("CanvasOverlay.destroy");
+        $(window).off('resize', this._resizeToWindow);
+        clearInterval(this._resizeTimer);
+        this.canvas.dispose();
+        document.body.removeChild(this.canvasEl);
+    },
+
+    blockInteractions: function(){
+        this.interactionsBlocked = true;
+        $(this.canvasEl).css({
+            'pointer-events': 'auto',
+            'background-color': 'rgba(0,0,30,0.2)',
+            'background': '-moz-radial-gradient(circle, rgba(0,0,0,0.0), rgba(0,0,0,0.6)',
+        });
+        this.canvas.renderAll();
+    },
+
+    unblockInteractions: function(){
+        this.interactionsBlocked = false;
+        $(this.canvasEl).css({
+            'pointer-events': 'none',
+            'background-color': 'rgba(0,0,0,0)',
+            'background': 'rgba(0,0,0,0)',
+        });
+        this.canvas.renderAll();
+    },
+};
+Minivents(CanvasOverlay.prototype);
+
