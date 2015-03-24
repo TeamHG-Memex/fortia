@@ -6,6 +6,9 @@ Content script with annotation UI.
 var $ = jQuery.noConflict(true);
 
 
+/* Return a short random string */
+function getRandomString() {
+    return Math.random().toString(36).substr(2);
 }
 
 
@@ -16,7 +19,12 @@ function Annotator() {
     this.selector = new ElementSelector(this.overlay);
 
     this.selector.on("click", function(elem){
-        var data = JSON.stringify({"annotations": {"content": "field1"}});
+        var data = JSON.stringify({
+            "annotations": {
+                "content": "field1",
+                "id": getRandomString(),
+            }
+        });
         $(elem).attr("data-scrapy-annotate", data);
     })
 }
