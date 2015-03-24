@@ -1,14 +1,15 @@
 /*
-A canvas-backed rectangle which follows a DOM element
+A canvas-backed rectangle which follows a DOM element.
+It is drawed over fabric.js canvas.
 */
-function Outline(canvas, options) {
+function ElementOutline(canvas, options) {
     this.elem = null;
-    this.canvas = canvas;
+    this.canvas = canvas;  // fabric.js StaticCanvas
     this.opts = {
         pad: 4,
-        fillColor: "#EAE7D6",
+        fillColor: "#FCFCFC",
         fillColorAlpha: 0.2,
-        strokeColor: "#24C2CB",
+        strokeColor: "#59BCDE",  // "#24C2CB",
         strokeWidth: 2,
         roundRadius: 4,
     };
@@ -17,7 +18,9 @@ function Outline(canvas, options) {
     this.canvas.add(this.rect);
 }
 
-Outline.prototype = {
+ElementOutline.prototype = {
+
+    /* update rectangle style based on passed options */
     updateStyle: function (options) {
         this.opts = Object.assign(this.opts, options);
 
@@ -33,6 +36,7 @@ Outline.prototype = {
         });
     },
 
+    /* update rectangle position to match tracked element's position */
     updatePosition: function () {
         if (!this.elem){
             this.rect.set({visible: false});
@@ -51,6 +55,7 @@ Outline.prototype = {
         })
     },
 
+    /* set DOM node to track */
     trackElem: function(elem) {
         if (elem === this.elem){
             return;
@@ -59,14 +64,16 @@ Outline.prototype = {
         this.update();
     },
 
+    /* update the rectangle */
     update: function(options) {
         this.updateStyle(options);
         this.updatePosition();
         this.canvas.renderAll();
     },
 
+    /* remove all DOM elements and event handlers */
     destroy: function() {
-        console.log("Outline.destroy");
+        console.log("ElementOutline.destroy");
         this.canvas.remove(this.rect);
     }
 };

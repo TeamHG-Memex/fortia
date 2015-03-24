@@ -11,6 +11,8 @@ function CanvasOverlay(id='scrapely-overlay') {
 }
 
 CanvasOverlay.prototype = {
+
+    /* Create <canvas> element and its fabric.js wrapper */
     _createCanvas: function(id) {
         var canvasEl = document.createElement("canvas");
         canvasEl.id = id;
@@ -27,6 +29,7 @@ CanvasOverlay.prototype = {
         this.canvas.backgroundColor = null;
     },
 
+    /* Canvas needs to be resized when page is resized */
     _enableAutoResize: function () {
         this._resizeToWindow = () => {
             this.canvas.setHeight($(document).height());
@@ -40,6 +43,7 @@ CanvasOverlay.prototype = {
         this._resizeToWindow();
     },
 
+    /* remove all DOM elements and event handlers */
     destroy: function () {
         console.log("CanvasOverlay.destroy");
         $(window).off('resize', this._resizeToWindow);
@@ -48,6 +52,7 @@ CanvasOverlay.prototype = {
         document.body.removeChild(this.canvasEl);
     },
 
+    /* make canvas handle all mouse click events */
     blockInteractions: function(){
         this.interactionsBlocked = true;
         $(this.canvasEl).css({
@@ -58,6 +63,7 @@ CanvasOverlay.prototype = {
         this.canvas.renderAll();
     },
 
+    /* allow click events to bypass canvas */
     unblockInteractions: function(){
         this.interactionsBlocked = false;
         $(this.canvasEl).css({
@@ -68,5 +74,7 @@ CanvasOverlay.prototype = {
         this.canvas.renderAll();
     },
 };
+
+/* enable .on, .off and .emit methods */
 Minivents(CanvasOverlay.prototype);
 

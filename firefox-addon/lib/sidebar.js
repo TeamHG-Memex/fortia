@@ -9,7 +9,7 @@ function AnnotationSidebar(annotators){
     this.annotators = annotators;
     this.sidebar = ui.Sidebar({
         id: 'my-sidebar',
-        title: 'Annotation',
+        title: 'Fortia Sidebar',
         url: "./sidebar/sidebar.html",
     });
 
@@ -23,7 +23,7 @@ AnnotationSidebar.prototype = {
     update: function(tab){
         var tab = tab || tabs.activeTab;
         var annotator = this.annotators[tab.id];
-        if (!annotator || !annotator.active){
+        if (!annotator || !annotator.active) {
             this.sidebar.hide();
         }
         else {

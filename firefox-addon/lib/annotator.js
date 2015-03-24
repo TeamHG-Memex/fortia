@@ -13,8 +13,9 @@ function TabAnnotator(tab){
         "./vendor/fabric-1.4.0.js",
         "./vendor/minivents.js",
 
-        "./annotator/outline.js",
-        "./annotator/overlay.js",
+        "./annotator/ElementOutline.js",
+        "./annotator/CanvasOverlay.js",
+        "./annotator/ElementSelector.js",
         "./annotator/annotator.js"
     ];
     this.active = false;
