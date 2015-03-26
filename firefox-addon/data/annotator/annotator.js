@@ -3,8 +3,6 @@ Content script with annotation UI.
 */
 
 "use strict";
-var $ = jQuery.noConflict(true);
-
 
 /* Return a short random string */
 function getRandomString() {
