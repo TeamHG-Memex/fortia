@@ -3,9 +3,10 @@ Sidebar JSX (React) code
 */
 
 var fields = [
-    {key: 0, name: "title", "annotations": []},
-    {key: 1, name: "score", "annotations": []},
+    {name: "title", "annotations": []},
+    {name: "score", "annotations": []},
 ];
+
 
 var EmptyMessage = React.createClass({
     render: function(){
@@ -45,8 +46,7 @@ var FieldEdit = React.createClass({
         return {ok: this.props.name != ""};
     },
     componentDidMount: function () {
-        $(React.findDOMNode(this.refs.nameInput)).focus().select();
-        //.focus();
+        $(this.refs.nameInput.getDOMNode()).focus().select();
     },
     onSubmit: function (ev) {
         ev.preventDefault();
@@ -96,7 +96,7 @@ var FieldWidget = React.createClass({
     },
     onSubmit: function(newName){
         this.setState({editing: false});
-        this.props.onChange(this.props.field.key, {name: newName});
+        this.props.onChange({name: newName});
     },
     render: function () {
         var name = this.props.field.name;
@@ -114,12 +114,9 @@ var Sidebar = React.createClass({
     getInitialState: function() {
         return {fields: fields};
     },
-    onFieldChanged: function (key, changes) {
-        var newFields = this.state.fields.map(function (field) {
-            if (field.key == key){
-                return _.extend({}, field, changes);
-            }
-            return field;
+    onFieldChanged: function (index, changes) {
+        var newFields = this.state.fields.map(function (field, i) {
+            return (index == i) ? _.extend({}, field, changes) : field;
         }.bind(this));
         this.setState({fields: newFields});
     },
@@ -127,8 +124,8 @@ var Sidebar = React.createClass({
         if (!this.state.fields.length){
             return <EmptyMessage/>;
         }
-        var items = this.state.fields.map(function (field) {
-            return <FieldWidget field={field} onChange={this.onFieldChanged}/>;
+        var items = this.state.fields.map(function (field, i) {
+            return <FieldWidget field={field} onChange={this.onFieldChanged.bind(this, i)}/>;
         }.bind(this));
 
         return (
