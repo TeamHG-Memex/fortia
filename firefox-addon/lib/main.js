@@ -25,7 +25,7 @@ tabs.on("close", function(tab){
 var sidebar = new AnnotationSidebar(annotators);
 
 
-/* A buton for showing/hiding annotation UI */
+/* A button for showing/hiding annotation UI */
 var button = ui.ActionButton({
     id: "annotate-button",
     label: "Annotation Tool",
@@ -48,6 +48,7 @@ var button = ui.ActionButton({
     }
 });
 
+
 /*
 A shortcut: os OS X press CMD+E to activate the UI.
 */
@@ -60,5 +61,5 @@ var toggleUIhotkey = Hotkey({
 
 
 // for debugging - go to some initial url
-tabs.activeTab.url = "http://yahoo.com/";
+tabs.activeTab.url = "http://stackoverflow.com/questions/29268299/difference-between-oracle-client-and-odac";
 

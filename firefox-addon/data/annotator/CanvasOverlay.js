@@ -23,10 +23,20 @@ CanvasOverlay.prototype = {
             "z-index": 10000000,
             'pointer-events': 'none',
         });
-        document.body.appendChild(canvasEl);
         this.canvasEl = canvasEl;
+        this.mount();
         this.canvas = new fabric.StaticCanvas(canvasEl);
         this.canvas.backgroundColor = null;
+    },
+
+    /* add necessary nodes to DOM */
+    mount: function () {
+        document.body.appendChild(this.canvasEl);
+    },
+
+    /* remove all extra nodes from DOM */
+    unmount: function () {
+        this.canvasEl = document.body.removeChild(this.canvasEl);
     },
 
     /* Canvas needs to be resized when page is resized */

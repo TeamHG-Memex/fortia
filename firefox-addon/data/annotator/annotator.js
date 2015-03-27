@@ -24,7 +24,11 @@ function Annotator() {
             }
         });
         $(elem).attr("data-scrapy-annotate", data);
-    })
+    });
+
+    self.port.on("getTemplate", () => {
+        self.port.emit("annotator:template", this.getTemplate());
+    });
 }
 
 Annotator.prototype = {
@@ -41,7 +45,10 @@ Annotator.prototype = {
         this.overlay.unblockInteractions();
     },
     getTemplate: function() {
-        return document.innerHtml;
+        this.overlay.unmount();
+        var template = document.documentElement.outerHTML;
+        this.overlay.mount();
+        return template;
     }
 };
 
@@ -66,7 +73,7 @@ self.port.on("activate", function() {
         annotator = new Annotator();
     }
     annotator.unlock();
-    self.port.emit("annotator-ready");
+    self.port.emit("annotator:ready");
 });
 
 self.port.on("deactivate", function () {

@@ -1,5 +1,6 @@
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
+var dialogs = require("dialogs");
 
 /*
 Sidebar object.
@@ -11,12 +12,29 @@ function AnnotationSidebar(annotators){
         id: 'my-sidebar',
         title: 'Fortia Sidebar',
         url: "./sidebar/sidebar.html",
+        onReady: (worker) => {
+            worker.port.on("saveTemplateAs", () => {
+                console.error("add-on script got SaveAs request");
+                if (!this.tabId){
+                    console.error("tab is inactive");
+                }
+                var annotator = this.annotators[this.tabId];
+                annotator.getTemplate((html) => {
+                    this.saveTemplateToFile(html);
+                })
+            });
+        }
     });
+    this.nextSuggestedIndex = 1;
+    this.tabId = tabs.activeTab.id;
 
     tabs.on("activate", (tab) => {
         console.log("activate tab:", tab.id);
+        this.tabId = tab.id;
         this.update(tab);
     });
+    tabs.on("deactivate", (tab) => {this.tabId = null;});
+    tabs.on("close", (tab) => {this.tabId = null;});
 }
 
 AnnotationSidebar.prototype = {
@@ -28,6 +46,15 @@ AnnotationSidebar.prototype = {
         }
         else {
             this.sidebar.show();
+        }
+    },
+
+    /* Ask user where to save the template and save it. */
+    saveTemplateToFile: function (html) {
+        let filename = "scrapely-template-" + this.nextSuggestedIndex + ".html";
+        let ok = dialogs.save("Save the template", filename, html);
+        if (ok){
+            this.nextSuggestedIndex += 1;
         }
     }
 };

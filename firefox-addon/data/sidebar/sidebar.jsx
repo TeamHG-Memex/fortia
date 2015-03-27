@@ -121,6 +121,9 @@ var Sidebar = React.createClass({
         }.bind(this));
         this.setState({fields: newFields});
     },
+    onSaveAs: function (ev) {
+        addon.port.emit("saveTemplateAs");
+    },
     render: function(){
         if (!this.state.fields.length){
             return <EmptyMessage/>;
@@ -132,13 +135,15 @@ var Sidebar = React.createClass({
         return (
             <div>
                 <BootstrapListGroup items={items}/>
+
                 <div className="row">
                     <div className="col-xs-12">
                         <div className="btn-group btn-group-justified" role="group">
-                            <a className="btn btn-default" role="button">Save as..</a>
+                            <a className="btn btn-default" role="button" onClick={this.onSaveAs}>Save as..</a>
                         </div>
                     </div>
                 </div>
+
             </div>
         );
     }

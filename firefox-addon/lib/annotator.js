@@ -76,11 +76,15 @@ TabAnnotator.prototype = {
         this.update();
     },
 
-    //getTemplate: function () {
-    //    var p = new Promise();
-    //    this.worker.port.emit("getTemplete");
-    //    this.worker.
-    //},
+    /* Call the callback with the current template HTML */
+    getTemplate: function (callback) {
+        var onReady = (html) => {
+            callback(html);
+            this.worker.port.removeListener("annotator:template", onReady);
+        };
+        this.worker.port.on("annotator:template", onReady);
+        this.worker.port.emit("getTemplate");
+    },
 
     _injectScripts: function(){
         var tab = this.tab;
