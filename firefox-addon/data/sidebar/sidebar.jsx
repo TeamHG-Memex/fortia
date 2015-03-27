@@ -115,9 +115,9 @@ var Sidebar = React.createClass({
         return {fields: fields};
     },
     onFieldChanged: function (index, changes) {
-        var newFields = this.state.fields.map(function (field, i) {
+        var newFields = this.state.fields.map((field, i) => {
             return (index == i) ? _.extend({}, field, changes) : field;
-        }.bind(this));
+        });
         this.setState({fields: newFields});
     },
     onSaveAs: function (ev) {
@@ -127,9 +127,9 @@ var Sidebar = React.createClass({
         if (!this.state.fields.length){
             return <EmptyMessage/>;
         }
-        var items = this.state.fields.map(function (field, i) {
+        var items = this.state.fields.map((field, i) => {
             return <FieldWidget field={field} onChange={this.onFieldChanged.bind(this, i)}/>;
-        }.bind(this));
+        });
 
         return (
             <div>
@@ -149,4 +149,3 @@ var Sidebar = React.createClass({
 });
 
 React.render(<Sidebar/>, document.getElementById('content'));
-
