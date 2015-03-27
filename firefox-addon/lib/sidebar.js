@@ -14,7 +14,7 @@ function AnnotationSidebar(annotators){
         url: "./sidebar/sidebar.html",
         onReady: (worker) => {
             worker.port.on("saveTemplateAs", () => {
-                console.error("add-on script got SaveAs request");
+                console.log("add-on script got SaveAs request");
                 if (!this.tabId){
                     console.error("tab is inactive");
                 }
