@@ -8,7 +8,6 @@ function ElementSelector(overlay, outlineOptions) {
     this.canvas = overlay.canvas;
     this.outline = new ElementOutline(this.canvas, outlineOptions);
     this.cursor = "pointer"; // "cell"
-    this.oldCursor = "inherit";
 
     this.onMouseOver = (event) => {
         var elem = event.target;
@@ -19,10 +18,7 @@ function ElementSelector(overlay, outlineOptions) {
 
         this.outline.trackElem(elem);
         this.currentElement = elem;
-
-        var $elem = $(elem);
-        this.oldCursor = $elem.css("cursor");
-        $elem.on("click", this.onClick).css({cursor: this.cursor});
+        $(elem).on("click", this.onClick).css({cursor: this.cursor});
     };
 
     this.onClick = (event) => {
@@ -55,7 +51,7 @@ ElementSelector.prototype = {
         if (!this.currentElement) {
             return;
         }
-        $(this.currentElement).off("click", this.onClick).css({cursor: this.oldCursor});
+        $(this.currentElement).off("click", this.onClick).css({cursor: ""});
     }
 };
 
