@@ -19,6 +19,7 @@ var EmptyMessage = React.createClass({
     }
 });
 
+
 var BootstrapListGroup = React.createClass({
     render: function () {
         var items = this.props.items.map(function (item) {
@@ -32,10 +33,10 @@ var BootstrapListGroup = React.createClass({
 var FieldDisplay = React.createClass({
     render: function () {
         return (
-            <span onClick={this.props.onClick}>
+            <div onClick={this.props.onClick}>
                 {this.props.name}
                 <span className="glyphicon glyphicon-pencil pull-right" role="button"></span>
-            </span>
+            </div>
         );
     }
 });
