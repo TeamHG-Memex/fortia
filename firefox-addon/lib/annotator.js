@@ -5,9 +5,10 @@ var ui = require("sdk/ui");
 /*
 Per-tab annotation UI
 */
-function TabAnnotator(tab){
+function TabAnnotator(tab, sidebar){
     console.log("creating TabAnnotator for ", tab.id, tab.url);
     this.tab = tab;
+    this.sidebar = sidebar;
     this.scripts = [
         "./vendor/jquery-2.1.3.js",
         "./vendor/fabric-1.4.0.js",
@@ -90,6 +91,11 @@ TabAnnotator.prototype = {
         var tab = this.tab;
         console.log("_injectScripts to ", tab.id);
         this.worker = tab.attach({contentScriptFile: this.scripts});
+        this.worker.port.on("annotation:added", (info) => {
+            console.log("annotation:added", info);
+            var field = info["data"]["annotations"]["content"];
+            this.sidebar.addField(field);
+        })
     },
 };
 

@@ -23,6 +23,7 @@ function AnnotationSidebar(annotators){
                     this.saveTemplateToFile(html);
                 })
             });
+            this.sidebarWorker = worker;
         }
     });
     this.nextSuggestedIndex = 1;
@@ -56,6 +57,10 @@ AnnotationSidebar.prototype = {
         if (ok){
             this.nextSuggestedIndex += 1;
         }
+    },
+
+    addField: function (field) {
+        this.sidebarWorker.port.emit("fields:add", field);
     }
 };
 

@@ -64,6 +64,7 @@ CanvasOverlay.prototype = {
 
     /* make canvas handle all mouse click events */
     blockInteractions: function(){
+        console.log("CanvasOverlay.blockInteractions");
         this.interactionsBlocked = true;
         $(this.canvasEl).css({
             'pointer-events': 'auto',
@@ -75,6 +76,7 @@ CanvasOverlay.prototype = {
 
     /* allow click events to bypass canvas */
     unblockInteractions: function(){
+        console.log("CanvasOverlay.unblockInteractions");
         this.interactionsBlocked = false;
         $(this.canvasEl).css({
             'pointer-events': 'none',

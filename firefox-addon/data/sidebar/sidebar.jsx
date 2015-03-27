@@ -7,6 +7,11 @@ var fields = [
     {name: "score", "annotations": []},
 ];
 
+var fields = [];
+
+
+const update = React.addons.update;
+
 
 var EmptyMessage = React.createClass({
     render: function(){
@@ -53,7 +58,7 @@ var FieldEdit = React.createClass({
     onSubmit: function (ev) {
         ev.preventDefault();
         if (this.state.ok){
-            console.log("submit");
+            console.log("field value changed");
             this.props.onSubmit(this.refs.nameInput.getDOMNode().value.trim());
         }
     },
@@ -111,18 +116,40 @@ var FieldWidget = React.createClass({
 });
 
 
+var SaveTemplateAsButton = React.createClass({
+    onSaveAs: function (ev) {
+        addon.port.emit("saveTemplateAs");
+    },
+    render: function () {
+        return (
+            <div className="row">
+                <div className="col-xs-12">
+                    <div className="btn-group btn-group-justified" role="group">
+                        <a className="btn btn-default" role="button" onClick={this.onSaveAs}>Save as..</a>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+});
+
+
 var Sidebar = React.createClass({
     getInitialState: function() {
         return {fields: fields};
+    },
+    componentDidMount: function () {
+        addon.port.on("fields:add", (field) => {
+            var el = {'name': field};
+            this.setState(update(this.state, {fields: {$push: [el]}}));
+        })
+
     },
     onFieldChanged: function (index, changes) {
         var newFields = this.state.fields.map((field, i) => {
             return (index == i) ? _.extend({}, field, changes) : field;
         });
         this.setState({fields: newFields});
-    },
-    onSaveAs: function (ev) {
-        addon.port.emit("saveTemplateAs");
     },
     render: function(){
         if (!this.state.fields.length){
@@ -135,15 +162,7 @@ var Sidebar = React.createClass({
         return (
             <div>
                 <BootstrapListGroup>{items}</BootstrapListGroup>
-
-                <div className="row">
-                    <div className="col-xs-12">
-                        <div className="btn-group btn-group-justified" role="group">
-                            <a className="btn btn-default" role="button" onClick={this.onSaveAs}>Save as..</a>
-                        </div>
-                    </div>
-                </div>
-
+                <SaveTemplateAsButton/>
             </div>
         );
     }

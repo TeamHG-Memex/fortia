@@ -11,7 +11,7 @@ var annotators = {};
 
 function getAnnotator(tab){
     if (!annotators[tab.id]){
-        annotators[tab.id] = new TabAnnotator(tab);
+        annotators[tab.id] = new TabAnnotator(tab, sidebar);
     }
     return annotators[tab.id];
 }
