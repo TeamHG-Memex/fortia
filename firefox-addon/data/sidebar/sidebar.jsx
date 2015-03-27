@@ -22,7 +22,7 @@ var EmptyMessage = React.createClass({
 
 var BootstrapListGroup = React.createClass({
     render: function () {
-        var items = this.props.items.map(function (item) {
+        var items = this.props.children.map(function (item) {
             return <li className="list-group-item">{item}</li>
         });
         return <ul className="list-group">{items}</ul>;
@@ -53,7 +53,7 @@ var FieldEdit = React.createClass({
         ev.preventDefault();
         if (this.state.ok){
             console.log("submit");
-            this.props.onSubmit(this.refs.nameInput.getDOMNode().value);
+            this.props.onSubmit(this.refs.nameInput.getDOMNode().value.trim());
         }
     },
     onButtonClick: function(ev) {
@@ -66,8 +66,7 @@ var FieldEdit = React.createClass({
         }
     },
     onChange: function (ev) {
-        var value = this.refs.nameInput.getDOMNode().value.trim();
-        this.setState({ok: value != ""});
+        this.setState({ok: ev.target.value.trim() != ""});
     },
     render: function(){
         var glyphCls = "glyphicon glyphicon-" + (this.state.ok ? "ok": "remove");
@@ -134,7 +133,7 @@ var Sidebar = React.createClass({
 
         return (
             <div>
-                <BootstrapListGroup items={items}/>
+                <BootstrapListGroup>{items}</BootstrapListGroup>
 
                 <div className="row">
                     <div className="col-xs-12">
