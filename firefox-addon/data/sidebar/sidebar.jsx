@@ -13,7 +13,8 @@ var EmptyMessage = React.createClass({
         return (
             <p>
                 You haven't annotated any items yet.
-                Click on the text you want to extract.
+                Click on the elements you want to extract from the web page &nbsp;
+                <span className="glyphicon glyphicon-arrow-right"></span>
             </p>
         );
     }
