@@ -53,7 +53,10 @@ var FieldEdit = React.createClass({
         return {ok: this.props.name != ""};
     },
     componentDidMount: function () {
-        $(this.refs.nameInput.getDOMNode()).focus().select();
+        this.focus();
+    },
+    focus: function () {
+        return $(this.refs.nameInput.getDOMNode()).focus().select();
     },
     onSubmit: function (ev) {
         ev.preventDefault();
@@ -138,25 +141,44 @@ var Sidebar = React.createClass({
     getInitialState: function() {
         return {fields: fields};
     },
-    componentDidMount: function () {
-        addon.port.on("fields:add", (field) => {
-            var el = {'name': field};
-            this.setState(update(this.state, {fields: {$push: [el]}}));
-        })
 
+    componentDidMount: function () {
+        if (typeof addon == 'undefined') {
+            this.addField("title");
+            return;  // developer is testing sidebar HTML
+        }
+        addon.port.on("fields:add", (name) => {
+            this.addField(name);
+        });
     },
+
+    addField: function(name){
+        if (this.state.fields.some((v) => v.name == name)) {
+            console.info("duplicate field name", name);
+            return;
+        }
+        var el = {'name': name};
+        var state = update(this.state, {fields: {$push: [el]}});
+        this.setState(state, function(){
+            var id = "field" + (this.state.fields.length-1);
+            this.refs[id].showEditor();
+        });
+    },
+
     onFieldChanged: function (index, changes) {
         var newFields = this.state.fields.map((field, i) => {
             return (index == i) ? _.extend({}, field, changes) : field;
         });
         this.setState({fields: newFields});
     },
-    render: function(){
+
+    render: function() {
         if (!this.state.fields.length){
             return <EmptyMessage/>;
         }
         var items = this.state.fields.map((field, i) => {
-            return <FieldWidget field={field} onChange={this.onFieldChanged.bind(this, i)}/>;
+            var onChange = this.onFieldChanged.bind(this, i);
+            return <FieldWidget field={field} ref={"field"+i} onChange={onChange} />;
         });
 
         return (

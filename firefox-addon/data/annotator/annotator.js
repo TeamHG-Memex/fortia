@@ -101,7 +101,7 @@ Annotations.prototype = {
         var id = getRandomString();
         this.setid(elem, id);
         var data = {annotations: {[attr]: fieldName}};
-        $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
+        $(elem).attr("data-scrapy-annotate", JSON.stringify(data)).blur();
 
         this.emit("added", {id: id, data: data});
     },

@@ -59,8 +59,8 @@ AnnotationSidebar.prototype = {
         }
     },
 
-    addField: function (field) {
-        this.sidebarWorker.port.emit("fields:add", field);
+    addField: function (name) {
+        this.sidebarWorker.port.emit("fields:add", name);
     }
 };
 
