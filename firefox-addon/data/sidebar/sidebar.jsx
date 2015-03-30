@@ -2,12 +2,13 @@
 Sidebar JSX (React) code
 */
 
-var fields = [
-    {name: "title", "annotations": []},
-    {name: "score", "annotations": []},
-];
-
 var fields = [];
+if (addon.mocked){
+    fields = [
+        {name: "title"},
+        {name: "score"},
+    ];
+}
 
 
 const update = React.addons.update;
@@ -143,10 +144,6 @@ var Sidebar = React.createClass({
     },
 
     componentDidMount: function () {
-        if (typeof addon == 'undefined') {
-            this.addField("title");
-            return;  // developer is testing sidebar HTML
-        }
         addon.port.on("fields:add", (name) => {
             this.addField(name);
         });
