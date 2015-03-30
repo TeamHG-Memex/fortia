@@ -73,7 +73,7 @@ ElementOutline.prototype = {
 
     /* remove all DOM elements and event handlers */
     destroy: function() {
-        console.log("ElementOutline.destroy");
+        //console.log("ElementOutline.destroy");
         this.canvas.remove(this.rect);
     }
 };

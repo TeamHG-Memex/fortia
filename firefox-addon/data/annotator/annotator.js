@@ -2,8 +2,6 @@
 Content script with annotation UI.
 */
 
-"use strict";
-
 /* Return a short random string */
 function getRandomString() {
     return Math.random().toString(36).substr(2);
@@ -17,13 +15,16 @@ It creates a canvas overlay and manages annotation tools.
 function Annotator(){
     this.overlay = new CanvasOverlay();
     this.annotations = new Annotations();
+    this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
-    this.annotations.on("added", function (info) {
+    this.annotations.on("added", (info) => {
+        this.annotationsDisplay.updateAll();
         self.port.emit("annotation:added", info);
     });
 
     self.port.on("renameField", (oldName, newName) => {
         this.annotations.rename(oldName, newName);
+        this.annotationsDisplay.updateAll();
     });
 
     this.setTool(new CreateFieldAnnotator(this.overlay, this.annotations));
@@ -32,6 +33,7 @@ function Annotator(){
 Annotator.prototype = {
     destroy: function () {
         this.setTool(null);
+        this.annotationsDisplay.destroy();
         this.overlay.destroy();
         this.overlay = null;
     },
@@ -102,6 +104,7 @@ Annotations.prototype = {
         $(elem).attr("data-scrapy-id", id);
     },
 
+    /* Get annotation data stored for DOM element */
     getdata: function(elem){
         var data = $(elem).attr("data-scrapy-annotate");
         if (data) {
@@ -109,8 +112,14 @@ Annotations.prototype = {
         }
     },
 
+    /* Get annotation data in a DOM element */
     setdata: function (elem, data) {
         return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
+    },
+
+    /* Get all annotated DOM elements */
+    allElements: function () {
+        return $("[data-scrapy-annotate]");
     },
 
     /* Add a new annotation. */
@@ -126,15 +135,18 @@ Annotations.prototype = {
         this.emit("added", {id: id, data: data});
     },
 
-    /* rename a field */
+    /* Rename a field */
     rename: function (oldName, newName) {
-        console.log("rename", oldName, newName);
-        $("[data-scrapy-annotate]").each((idx, elem) => {
+        this.allElements().each((idx, elem) => {
             var data = this.getdata(elem);
+            var id = this.getid(elem);
             var annotations = data.annotations;
             for (let attr of Object.keys(annotations)) {
                 if (annotations[attr] == oldName){
                     annotations[attr] = newName;
+                    this.emit("renamed", {
+                        id: id, oldName: oldName, name: newName, attr: attr
+                    });
                 }
             }
             this.setdata(elem, data);
@@ -145,21 +157,6 @@ Annotations.prototype = {
     loadFromDOM: function () {
         // TODO
     },
-
-    ///* Get annotation info for an HTML element */
-    //_getElementAnnotations: function (elem) {
-    //    var data = $(elem).attr("data-scrapy-annotate");
-    //    if (data) {
-    //        return JSON.parse(data)["annotations"];
-    //    }
-    //},
-    //
-    ///* Get annotation info by its id */
-    //get: function (id) {
-    //    var elem = $("[data-scrapy-id='"+id+"']");
-    //    return this.getForElement(elem);
-    //}
-
 };
 
 /* enable .on, .off and .emit methods for Annotations */
