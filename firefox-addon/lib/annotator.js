@@ -87,6 +87,11 @@ TabAnnotator.prototype = {
         this.worker.port.emit("getTemplate");
     },
 
+    /* Field name changed - update the template with the new field name */
+    renameField: function(oldName, newName){
+        this.worker.port.emit("renameField", oldName, newName);
+    },
+
     _injectScripts: function(){
         var tab = this.tab;
         console.log("_injectScripts to ", tab.id);

@@ -122,7 +122,7 @@ var FieldWidget = React.createClass({
 
 var SaveTemplateAsButton = React.createClass({
     onSaveAs: function (ev) {
-        addon.port.emit("saveTemplateAs");
+        addon.port.emit("template:saveas");
     },
     render: function () {
         return (
@@ -166,6 +166,14 @@ var Sidebar = React.createClass({
         var newFields = this.state.fields.map((field, i) => {
             return (index == i) ? _.extend({}, field, changes) : field;
         });
+
+
+        var oldName = this.state.fields[index].name;
+        var newName = changes.name;
+        if (oldName != newName){
+            addon.port.emit("field:renamed", oldName, newName);
+        }
+
         this.setState({fields: newFields});
     },
 

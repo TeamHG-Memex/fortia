@@ -5,6 +5,9 @@ var dialogs = require("dialogs");
 /*
 Sidebar object.
 Unfinished.
+
+XXX: refactor it? It could make more sense for TabAnnotator to listen
+for Sidebar events instead of calling TabAnnotator methods from a sideabar.
 */
 function AnnotationSidebar(annotators){
     this.annotators = annotators;
@@ -13,7 +16,7 @@ function AnnotationSidebar(annotators){
         title: 'Fortia Sidebar',
         url: "./sidebar/sidebar.html",
         onReady: (worker) => {
-            worker.port.on("saveTemplateAs", () => {
+            worker.port.on("template:saveas", () => {
                 console.log("add-on script got SaveAs request");
                 if (!this.tabId){
                     console.error("tab is inactive");
@@ -23,6 +26,12 @@ function AnnotationSidebar(annotators){
                     this.saveTemplateToFile(html);
                 })
             });
+
+            worker.port.on("field:renamed", (oldName, newName) => {
+                var annotator = this.annotators[this.tabId];
+                annotator.renameField(oldName, newName);
+            });
+
             this.sidebarWorker = worker;
         }
     });

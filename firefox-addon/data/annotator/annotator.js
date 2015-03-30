@@ -22,6 +22,10 @@ function Annotator(){
         self.port.emit("annotation:added", info);
     });
 
+    self.port.on("renameField", (oldName, newName) => {
+        this.annotations.rename(oldName, newName);
+    });
+
     this.setTool(new CreateFieldAnnotator(this.overlay, this.annotations));
 }
 
@@ -98,6 +102,17 @@ Annotations.prototype = {
         $(elem).attr("data-scrapy-id", id);
     },
 
+    getdata: function(elem){
+        var data = $(elem).attr("data-scrapy-annotate");
+        if (data) {
+            return JSON.parse(data);
+        }
+    },
+
+    setdata: function (elem, data) {
+        return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
+    },
+
     /* Add a new annotation. */
     add: function (elem, fieldName, attr="content") {
         if (!fieldName) {
@@ -107,9 +122,23 @@ Annotations.prototype = {
         var id = getRandomString();
         this.setid(elem, id);
         var data = {annotations: {[attr]: fieldName}};
-        $(elem).attr("data-scrapy-annotate", JSON.stringify(data)).blur();
-
+        this.setdata(elem, data).blur();
         this.emit("added", {id: id, data: data});
+    },
+
+    /* rename a field */
+    rename: function (oldName, newName) {
+        console.log("rename", oldName, newName);
+        $("[data-scrapy-annotate]").each((idx, elem) => {
+            var data = this.getdata(elem);
+            var annotations = data.annotations;
+            for (let attr of Object.keys(annotations)) {
+                if (annotations[attr] == oldName){
+                    annotations[attr] = newName;
+                }
+            }
+            this.setdata(elem, data);
+        });
     },
 
     /* get a list of annotations from DOM */
