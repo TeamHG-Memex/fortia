@@ -16,7 +16,13 @@ It creates a canvas overlay and manages annotation tools.
 */
 function Annotator(){
     this.overlay = new CanvasOverlay();
-    this.setTool(new CreateFieldAnnotator(this.overlay));
+    this.annotations = new Annotations();
+
+    this.annotations.on("added", function (info) {
+        self.port.emit("annotation:added", info);
+    });
+
+    this.setTool(new CreateFieldAnnotator(this.overlay, this.annotations));
 }
 
 Annotator.prototype = {
@@ -132,7 +138,7 @@ Minivents(Annotations.prototype);
 
 
 /* A component for annotating new item fields */
-function CreateFieldAnnotator(overlay) {
+function CreateFieldAnnotator(overlay, annotations) {
     console.log("creating CreateFieldAnnotator");
     this.overlay = overlay;
     this.selector = new ElementSelector(this.overlay);
@@ -164,11 +170,6 @@ Minivents(CreateFieldAnnotator.prototype);
 
 
 var annotator = null;
-var annotations = new Annotations();
-
-annotations.on("added", function (info) {
-    self.port.emit("annotation:added", info);
-});
 
 
 self.port.on("lock", function () {
