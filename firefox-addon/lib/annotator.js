@@ -14,6 +14,7 @@ function TabAnnotator(tab, sidebar){
         "./vendor/fabric-1.4.0.js",
         "./vendor/minivents.js",
 
+        "./annotator/utils.js",
         "./annotator/ElementOutline.js",
         "./annotator/CanvasOverlay.js",
         "./annotator/ElementSelector.js",

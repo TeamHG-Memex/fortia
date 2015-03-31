@@ -2,12 +2,6 @@
 Content script with annotation UI.
 */
 
-/* Return a short random string */
-function getRandomString() {
-    return Math.random().toString(36).substr(2);
-}
-
-
 /*
 Main annotator object.
 It creates a canvas overlay and manages annotation tools.
