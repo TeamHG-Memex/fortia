@@ -125,7 +125,7 @@ Annotations.prototype = {
     /* Add a new annotation. */
     add: function (elem, fieldName, attr="content") {
         if (!fieldName) {
-            fieldName = "field-" + this.nextFieldId;
+            fieldName = "field" + this.nextFieldId;
             this.nextFieldId += 1;
         }
         var id = getRandomString();
