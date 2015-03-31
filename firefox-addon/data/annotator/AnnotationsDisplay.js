@@ -5,11 +5,11 @@ function AnnotationsDisplay(overlay, annotations) {
     this.annotations = annotations;
     this.outlines = [];
     this.outlineOptions = {
-        strokeWidth: 3,
+        strokeWidth: 2,
         pad: 4,
-        //fillColor: "#FCFCFC",
-        //fillColorAlpha: 0.2,
-        //strokeColor: "#24C2CB",
+        strokeColor: "#59BCDE",
+        fillColor: "#66D8FF",
+        fillColorAlpha: 0.2,
     }
 }
 
@@ -24,9 +24,17 @@ AnnotationsDisplay.prototype = {
     updateAll: function () {
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
+            var ann = this.annotations.getdata(elem).annotations;
+            var caption = Object.keys(ann).map((attr) => {
+                if (attr == "content"){
+                    return ann[attr];
+                }
+                return attr + " → " + ann[attr];
+            }).join(";");
             var outline = new ElementOutline(
                 this.overlay.canvas,
-                this.outlineOptions
+                this.outlineOptions,
+                " " + caption + " "
             );
             outline.trackElem(elem);
             return outline;

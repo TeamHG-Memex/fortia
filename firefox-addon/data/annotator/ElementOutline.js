@@ -2,9 +2,12 @@
 A canvas-backed rectangle which follows a DOM element.
 It is drawed over fabric.js canvas.
 */
-function ElementOutline(canvas, options) {
+function ElementOutline(canvas, options, caption="") {
     this.elem = null;
     this.canvas = canvas;  // fabric.js StaticCanvas
+    this.caption = caption || "";
+    this.textHeight = 14;
+
     this.opts = {
         pad: 4,
         fillColor: "#FCFCFC",
@@ -14,8 +17,19 @@ function ElementOutline(canvas, options) {
         roundRadius: 4,
     };
     this.rect = new fabric.Rect();
+    this.text = new fabric.Text(this.caption, {
+        left: 16,
+        top: 0,
+        fontFamily: '"Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif',
+        fontSize: this.textHeight,
+        color: "#FFFFFF",
+        fill: "#FFFFFF",
+        textBackgroundColor: '#43AC6A',
+    });
+    this.group = new fabric.Group([this.rect, this.text]);
+
     this.update(options);  // it updates this.opts if needed
-    this.canvas.add(this.rect);
+    this.canvas.add(this.group);
 }
 
 ElementOutline.prototype = {
@@ -39,7 +53,7 @@ ElementOutline.prototype = {
     /* update rectangle position to match tracked element's position */
     updatePosition: function () {
         if (!this.elem){
-            this.rect.set({visible: false});
+            this.group.set({visible: false});
             return;
         }
         var bbox = this.elem.getBoundingClientRect();
@@ -47,12 +61,15 @@ ElementOutline.prototype = {
         var strokeWidth = this.opts.strokeWidth;
 
         this.rect.set({
-            visible: true,
-            left: bbox.left + window.scrollX - pad,
-            top: bbox.top + window.scrollY - pad,
+            top: this.textHeight - pad,
             width: bbox.width + pad*2 - strokeWidth,
             height: bbox.height + pad*2 - strokeWidth,
-        })
+        });
+        this.group.set({
+            visible: true,
+            left: bbox.left + window.scrollX - pad,
+            top: bbox.top + window.scrollY - this.textHeight - pad*2,
+        });
     },
 
     /* set DOM node to track */
@@ -74,6 +91,6 @@ ElementOutline.prototype = {
     /* remove all DOM elements and event handlers */
     destroy: function() {
         //console.log("ElementOutline.destroy");
-        this.canvas.remove(this.rect);
+        this.canvas.remove(this.group);
     }
 };
