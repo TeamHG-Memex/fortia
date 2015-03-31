@@ -8,7 +8,7 @@ It creates a canvas overlay and manages annotation tools.
 */
 function Annotator(){
     this.overlay = new CanvasOverlay();
-    this.annotations = new Annotations();
+    this.annotations = new DomAnnotations();
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
     this.annotations.on("added", (info) => {
@@ -51,110 +51,6 @@ Annotator.prototype = {
     lock: function () {this.overlay.blockInteractions();},
     unlock: function () {this.overlay.unblockInteractions();},
 };
-
-
-/*
-An object for maintaining a list of annotations.
-
-Data is stored in HTML attributes:
-
-- `data-scrapy-id` contains an unique `id` for this annotation;
-- `data-scrapy-annotate` contains JSON-encoded object
-  {"annotations": {"htmlAttributeName": "fieldName"}}
-  "content" or "text-content" is a special value for "htmlAttributeName"
-  which means "get the text contents". Multiple attributes are allowed
-  by scrapely.
-
-In addition to "annotations" Scrapely supports other keys
-in `data-scrapy-annotate`:
-
-- "required";
-- "variant";
-- "generated".
-
-They are not supported by this UI yet.
-
-Scrapely also supports other optional attributes;
-they are also not handled here yet:
-
-- `data-scrapy-ignore`;
-- `data-scrapy-ignore-beneath`;
-- `data-scrapy-replacement`;
-
-*/
-function Annotations(){
-    this.loadFromDOM();
-    this.nextFieldId = 1;
-}
-
-Annotations.prototype = {
-    /* Get element's annotation ID */
-    getid: function (elem) {
-        return $(elem).attr("data-scrapy-id");
-    },
-
-    /* Set element's annotation ID */
-    setid: function (elem, id) {
-        $(elem).attr("data-scrapy-id", id);
-    },
-
-    /* Get annotation data stored for DOM element */
-    getdata: function(elem){
-        var data = $(elem).attr("data-scrapy-annotate");
-        if (data) {
-            return JSON.parse(data);
-        }
-    },
-
-    /* Get annotation data in a DOM element */
-    setdata: function (elem, data) {
-        return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
-    },
-
-    /* Get all annotated DOM elements */
-    allElements: function () {
-        return $("[data-scrapy-annotate]");
-    },
-
-    /* Add a new annotation. */
-    add: function (elem, fieldName, attr="content") {
-        if (!fieldName) {
-            fieldName = "field" + this.nextFieldId;
-            this.nextFieldId += 1;
-        }
-        var id = getRandomString();
-        this.setid(elem, id);
-        var data = {annotations: {[attr]: fieldName}};
-        this.setdata(elem, data).blur();
-        this.emit("added", {id: id, data: data});
-    },
-
-    /* Rename a field */
-    rename: function (oldName, newName) {
-        this.allElements().each((idx, elem) => {
-            var data = this.getdata(elem);
-            var id = this.getid(elem);
-            var annotations = data.annotations;
-            for (let attr of Object.keys(annotations)) {
-                if (annotations[attr] == oldName){
-                    annotations[attr] = newName;
-                    this.emit("renamed", {
-                        id: id, oldName: oldName, name: newName, attr: attr
-                    });
-                }
-            }
-            this.setdata(elem, data);
-        });
-    },
-
-    /* get a list of annotations from DOM */
-    loadFromDOM: function () {
-        // TODO
-    },
-};
-
-/* enable .on, .off and .emit methods for Annotations */
-Minivents(Annotations.prototype);
 
 
 /* A component for annotating new item fields */

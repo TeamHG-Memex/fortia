@@ -18,6 +18,7 @@ function TabAnnotator(tab, sidebar){
         "./annotator/ElementOutline.js",
         "./annotator/CanvasOverlay.js",
         "./annotator/ElementSelector.js",
+        "./annotator/DomAnnotations.js",
         "./annotator/AnnotationsDisplay.js",
         "./annotator/annotator.js"
     ];
