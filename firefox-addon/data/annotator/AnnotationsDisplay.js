@@ -10,7 +10,19 @@ function AnnotationsDisplay(overlay, annotations) {
         strokeColor: "#59BCDE",
         fillColor: "#66D8FF",
         fillColorAlpha: 0.2,
-    }
+    };
+    this.highlightMode = "mouseover";  // other allowed values: "always", "never"
+
+    this.onAnnotationAdded = (info) => {
+        this.updateAll(info.id);
+    };
+
+    this.onAnnotationRenamed = (info) => {
+        this.updateAll(info.id);
+    };
+
+    this.annotations.on("added", this.onAnnotationAdded);
+    this.annotations.on("renamed", this.onAnnotationRenamed);
 }
 
 AnnotationsDisplay.prototype = {
@@ -21,9 +33,10 @@ AnnotationsDisplay.prototype = {
     },
 
     /* Update all elements based on current annotations */
-    updateAll: function () {
+    updateAll: function (highlightId) {
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
+            var id = this.annotations.getid(elem);
             var ann = this.annotations.getdata(elem).annotations;
             var caption = Object.keys(ann).map((attr) => {
                 if (attr == "content"){
@@ -34,7 +47,8 @@ AnnotationsDisplay.prototype = {
             var outline = new ElementOutline(
                 this.overlay.canvas,
                 this.outlineOptions,
-                " " + caption + " "
+                " " + caption + " ",
+                (id == highlightId)? "once" : this.highlightMode
             );
             outline.trackElem(elem);
             return outline;
@@ -42,6 +56,8 @@ AnnotationsDisplay.prototype = {
     },
 
     destroy: function(){
+        this.annotations.off("added", this.onAnnotationAdded);
+        this.annotations.off("renamed", this.onAnnotationRenamed);
         this.clear();
     }
 };

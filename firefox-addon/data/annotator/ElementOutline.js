@@ -2,10 +2,11 @@
 A canvas-backed rectangle which follows a DOM element.
 It is drawed over fabric.js canvas.
 */
-function ElementOutline(canvas, options, caption="") {
+function ElementOutline(canvas, options, caption="", showCaption="mouseover") {
     this.elem = null;
     this.canvas = canvas;  // fabric.js StaticCanvas
-    this.caption = caption || "";
+    this.caption = caption;
+    this.showCaption = showCaption;
     this.textHeight = 14;
 
     this.opts = {
@@ -25,8 +26,27 @@ function ElementOutline(canvas, options, caption="") {
         color: "#FFFFFF",
         fill: "#FFFFFF",
         textBackgroundColor: '#43AC6A',
+        visible: false,
     });
     this.group = new fabric.Group([this.rect, this.text]);
+
+    this.onMouseEnter = (ev) => {
+        if (this.showCaption != "mouseover") {
+            return
+        }
+        this.text.set("visible", true);
+        this.update();
+    };
+    this.onMouseLeave = (ev) => {
+        if (this.showCaption != "mouseover" && this.showCaption != "once"){
+            return;
+        }
+        this.text.set("visible", false);
+        if (this.showCaption == "once"){
+            this.showCaption = "mouseover";
+        }
+        this.update();
+    };
 
     this.update(options);  // it updates this.opts if needed
     this.canvas.add(this.group);
@@ -48,6 +68,13 @@ ElementOutline.prototype = {
             rx: this.opts.roundRadius,
             ry: this.opts.roundRadius,
         });
+
+        //console.log(this.showCaption);
+        if (this.showCaption == "never") {
+            this.text.set("visible", false);
+        } else if (this.showCaption == "always" || this.showCaption == "once") {
+            this.text.set("visible", true);
+        }
     },
 
     /* update rectangle position to match tracked element's position */
@@ -77,6 +104,16 @@ ElementOutline.prototype = {
         if (elem === this.elem){
             return;
         }
+        if (this.elem) {
+            $(this.elem).off("mouseenter", this.onMouseEnter);
+            $(this.elem).off("mouseleave", this.onMouseLeave);
+        }
+
+        if (elem) {
+            $(elem).on("mouseenter", this.onMouseEnter);
+            $(elem).on("mouseleave", this.onMouseLeave);
+        }
+
         this.elem = elem;
         this.update();
     },
@@ -91,6 +128,7 @@ ElementOutline.prototype = {
     /* remove all DOM elements and event handlers */
     destroy: function() {
         //console.log("ElementOutline.destroy");
+        this.trackElem(null);
         this.canvas.remove(this.group);
     }
 };

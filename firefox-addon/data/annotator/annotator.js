@@ -12,13 +12,11 @@ function Annotator(){
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
     this.annotations.on("added", (info) => {
-        this.annotationsDisplay.updateAll();
         self.port.emit("annotation:added", info);
     });
 
     self.port.on("renameField", (oldName, newName) => {
         this.annotations.rename(oldName, newName);
-        this.annotationsDisplay.updateAll();
     });
 
     this.setTool(new CreateFieldAnnotator(this.overlay, this.annotations));
