@@ -54,10 +54,10 @@ var FieldEdit = React.createClass({
         return {ok: this.props.name != ""};
     },
     componentDidMount: function () {
-        this.focus();
+        this.focus().select();
     },
     focus: function () {
-        return $(this.refs.nameInput.getDOMNode()).focus().select();
+        return $(this.refs.nameInput.getDOMNode()).focus();
     },
     onSubmit: function (ev) {
         ev.preventDefault();
@@ -65,32 +65,75 @@ var FieldEdit = React.createClass({
             console.log("field value changed");
             this.props.onSubmit(this.refs.nameInput.getDOMNode().value.trim());
         }
-    },
-    onButtonClick: function(ev) {
-        if (this.state.ok){
-            this.onSubmit(ev);
-        }
         else {
-            this.refs.nameInput.getDOMNode().value = this.props.name;
-            this.onChange();
+            this.focus();
         }
     },
-    onChange: function (ev) {
+    onReset: function (ev) {
+        ev.preventDefault();
+        this.refs.nameInput.getDOMNode().value = this.props.name;
+        this.props.onSubmit(this.props.name);
+    },
+    onRemove: function (ev) {
+        ev.preventDefault();
+        if (confirm("Are you sure you want to remove this field?")){
+            this.props.onRemove();
+        }
+    },
+    onInputChange: function (ev) {
         this.setState({ok: ev.target.value.trim() != ""});
     },
+    onInputKeyDown: function (ev) {
+        // Esc => cancel; Down => open the dropdown.
+        if (ev.key == 'Escape') {
+            this.onReset(ev);
+        } else if (ev.key == 'ArrowDown') {
+            ev.preventDefault();
+            $(this.refs.dropdown.getDOMNode()).click();
+            $(this.refs.okLink.getDOMNode()).focus();
+        }
+    },
+    onOkKeyDown: function (ev) {
+        // When user presses "Up" and the cursor is on "Save" dropdown link,
+        // close the dropdown and move focus back to the input.
+        if (ev.key == 'ArrowUp') {
+            ev.preventDefault();
+            $(this.refs.dropdown.getDOMNode()).click();
+            this.focus();
+        }
+    },
     render: function(){
-        var glyphCls = "glyphicon glyphicon-" + (this.state.ok ? "ok": "remove");
-        var btnCls = "btn btn-sm btn-" + (this.state.ok ? "success": "warning");
+        var btnCls = "btn btn-sm dropdown-toggle btn-" + (this.state.ok ? "success": "warning");
         return (
             <form className="input-group input-group-sm" onSubmit={this.onSubmit}>
-                <input type="text" className="form-control" autofocus
-                       onChange={this.onChange} ref="nameInput"
-                       placeholder="field name" defaultValue={this.props.name}/>
+
+                <input type="text" ref="nameInput"
+                       className="form-control" autofocus placeholder="field name"
+                       onChange={this.onInputChange}
+                       onKeyDown={this.onInputKeyDown}
+                       defaultValue={this.props.name} />
+
                 <span className="input-group-btn">
-                    <button className={btnCls} type="button" onClick={this.onButtonClick}>
-                        <span className={glyphCls}></span>
+                    <button className={btnCls} type="button" data-toggle="dropdown" ref="dropdown">
+                        <span className="caret"></span>
+                        <span className="sr-only">Toggle Dropdown</span>
                     </button>
+                    <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                        <li><a href="#" onClick={this.onSubmit} onKeyDown={this.onOkKeyDown} ref="okLink">
+                            <span className="glyphicon glyphicon-ok"></span>
+                            &nbsp;&nbsp;Save
+                        </a></li>
+                        <li><a href="#" onClick={this.onReset}>
+                            <span className="glyphicon glyphicon-repeat"></span>
+                            &nbsp;&nbsp;Cancel
+                        </a></li>
+                        <li><a href="#" onClick={this.onRemove}>
+                            <span className="glyphicon glyphicon-remove"></span>
+                            <span className="text-danger">&nbsp;&nbsp;Remove</span>
+                        </a></li>
+                    </ul>
                 </span>
+
             </form>
         );
     }
@@ -108,10 +151,14 @@ var FieldWidget = React.createClass({
         this.setState({editing: false});
         this.props.onChange({name: newName});
     },
+    onRemove: function () {
+        this.setState({editing: false});
+        this.props.onRemove();
+    },
     render: function () {
         var name = this.props.field.name;
         if (this.state.editing){
-            return <FieldEdit name={name} onSubmit={this.onSubmit} />;
+            return <FieldEdit name={name} onSubmit={this.onSubmit} onRemove={this.onRemove} />;
         }
         else{
             return <FieldDisplay name={name} onClick={this.showEditor} />;
@@ -177,13 +224,25 @@ var Sidebar = React.createClass({
         this.setState({fields: newFields});
     },
 
+    onFieldRemovalRequested: function (index) {
+        //console.log("remove field", index);
+        var field = this.state.fields[index];
+
+        this.setState(update(this.state, {
+            fields: {$splice: [[index, 1]]}
+        }));
+        addon.port.emit("field:removed", field.name);
+    },
+
     render: function() {
         if (!this.state.fields.length){
             return <EmptyMessage/>;
         }
         var items = this.state.fields.map((field, i) => {
             var onChange = this.onFieldChanged.bind(this, i);
-            return <FieldWidget field={field} ref={"field"+i} onChange={onChange} />;
+            var onRemove = this.onFieldRemovalRequested.bind(this, i);
+            return <FieldWidget field={field} ref={"field"+i}
+                                onChange={onChange} onRemove={onRemove} />;
         });
 
         return (

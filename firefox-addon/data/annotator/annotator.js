@@ -19,6 +19,10 @@ function Annotator(){
         this.annotations.rename(oldName, newName);
     });
 
+    self.port.on("removeField", (name) => {
+        this.annotations.removeField(name);
+    });
+
     this.setTool(new CreateFieldAnnotator(this.overlay, this.annotations));
 }
 

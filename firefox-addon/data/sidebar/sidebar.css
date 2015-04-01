@@ -11,3 +11,8 @@ html {
     color: #ffffff;
     cursor: default;
 }
+
+
+.dropdown-menu {
+    min-width: 136px;
+}

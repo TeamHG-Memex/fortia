@@ -95,6 +95,11 @@ TabAnnotator.prototype = {
         this.worker.port.emit("renameField", oldName, newName);
     },
 
+    /* Field is deleted - remove all annotations for this field from the template */
+    removeField: function(name){
+        this.worker.port.emit("removeField", name);
+    },
+
     _injectScripts: function(){
         var tab = this.tab;
         console.log("_injectScripts to ", tab.id);

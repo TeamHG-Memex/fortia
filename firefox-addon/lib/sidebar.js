@@ -32,6 +32,11 @@ function AnnotationSidebar(annotators){
                 annotator.renameField(oldName, newName);
             });
 
+            worker.port.on("field:removed", (name) => {
+                var annotator = this.annotators[this.tabId];
+                annotator.removeField(name);
+            });
+
             this.sidebarWorker = worker;
         }
     });

@@ -13,16 +13,14 @@ function AnnotationsDisplay(overlay, annotations) {
     };
     this.highlightMode = "mouseover";  // other allowed values: "always", "never"
 
-    this.onAnnotationAdded = (info) => {
-        this.updateAll(info.id);
-    };
-
-    this.onAnnotationRenamed = (info) => {
-        this.updateAll(info.id);
-    };
+    var doUpdateAll = (info) => {this.updateAll(info.id)};
+    this.onAnnotationAdded = doUpdateAll;
+    this.onAnnotationRenamed = doUpdateAll;
+    this.onAnnotationRemoved = doUpdateAll;
 
     this.annotations.on("added", this.onAnnotationAdded);
     this.annotations.on("renamed", this.onAnnotationRenamed);
+    this.annotations.on("removed", this.onAnnotationRemoved);
 }
 
 AnnotationsDisplay.prototype = {
@@ -58,6 +56,7 @@ AnnotationsDisplay.prototype = {
     destroy: function(){
         this.annotations.off("added", this.onAnnotationAdded);
         this.annotations.off("renamed", this.onAnnotationRenamed);
+        this.annotations.off("removed", this.onAnnotationRemoved);
         this.clear();
     }
 };

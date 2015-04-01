@@ -61,6 +61,12 @@ DomAnnotations.prototype = {
         return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
     },
 
+    /* Remove all annotations from a DOM element */
+    removeAnnotations: function (elem) {
+        $(elem).attr("data-scrapy-annotate", null);
+        $(elem).attr("data-scrapy-id", null);
+    },
+
     /* Get all annotated DOM elements */
     allElements: function () {
         return $("[data-scrapy-annotate]");
@@ -94,6 +100,37 @@ DomAnnotations.prototype = {
             }
             this.setdata(elem, data);
             renames.forEach((info) => this.emit("renamed", info));
+        });
+    },
+
+    /* Remove all annotations for the field */
+    removeField: function (name) {
+        this.allElements().each((idx, elem) => {
+            var id = this.getid(elem);
+            var data = this.getdata(elem);
+            var annotations = data.annotations;
+            var deletes = [];
+            var newAnnotations = {};
+            for (let attr of Object.keys(annotations)) {
+                if (annotations[attr] == name) {
+                    deletes.push({id: id, name: name, attr: attr});
+                }
+                else {
+                    newAnnotations[attr] = annotations[attr];
+                }
+            }
+
+            if (Object.keys(newAnnotations).length == 0){
+                // all properties are removed
+                this.removeAnnotations(elem);
+            }
+            else {
+                // some properties are still present
+                data.annotations = newAnnotations;
+                this.setdata(elem, data);
+            }
+
+            deletes.forEach((info) => this.emit("removed", info));
         });
     },
 
