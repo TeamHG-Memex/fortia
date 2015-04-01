@@ -51,7 +51,7 @@ var FieldDisplay = React.createClass({
 
 var FieldEdit = React.createClass({
     getInitialState: function() {
-        return {ok: this.props.name != ""};
+        return {ok: this.props.validate(this.props.name)};
     },
     componentDidMount: function () {
         this.focus().select();
@@ -81,7 +81,8 @@ var FieldEdit = React.createClass({
         }
     },
     onInputChange: function (ev) {
-        this.setState({ok: ev.target.value.trim() != ""});
+        var text = ev.target.value;
+        this.setState({ok: this.props.validate(text)});
     },
     onInputKeyDown: function (ev) {
         // Esc => cancel; Down => open the dropdown.
@@ -160,7 +161,10 @@ var FieldWidget = React.createClass({
     render: function () {
         var name = this.props.field.name;
         if (this.state.editing){
-            return <FieldEdit name={name} ref="editor" onSubmit={this.onSubmit} onRemove={this.onRemove} />;
+            return <FieldEdit name={name} ref="editor"
+                              onSubmit={this.onSubmit}
+                              onRemove={this.onRemove}
+                              validate={this.props.validate} />;
         }
         else{
             return <FieldDisplay name={name} onClick={this.showEditor} />;
@@ -193,19 +197,11 @@ var Sidebar = React.createClass({
     },
 
     componentDidMount: function () {
-        addon.port.on("field:add", (name) => {
-            this.addField(name);
-        });
-        addon.port.on("field:edit", (name) => {
-            this.showFieldEditor(name);
-        });
+        addon.port.on("field:add", (name) => {this.addField(name)});
+        addon.port.on("field:edit", (name) => {this.showFieldEditor(name)});
     },
 
     addField: function(name){
-        if (this.state.fields.some((v) => v.name == name)) {
-            console.info("duplicate field name", name);
-            return;
-        }
         var el = {'name': name};
         var state = update(this.state, {fields: {$push: [el]}});
         this.setState(state, function(){
@@ -215,7 +211,7 @@ var Sidebar = React.createClass({
     },
 
     showFieldEditor: function (name) {
-        var id = this.state.fields.findIndex((f) => f.name == name);
+        var id = this.state.fields.findIndex(f => f.name == name);
         if (id != -1){
             this.refs["field"+id].showEditor();
         }
@@ -243,9 +239,20 @@ var Sidebar = React.createClass({
         var field = this.state.fields[index];
 
         this.setState(update(this.state, {
-            fields: {$splice: [[index, 1]]}
+            fields: {$splice: [[index, 1]]}      // remove fields[index]
         }));
         addon.port.emit("field:removed", field.name);
+    },
+
+    valueAllowed: function (index, text) {
+        var text = text.trim();
+        if (text.trim() == ""){
+            return false;
+        }
+        var hasDuplicates = this.state.fields.some((f, i) => {
+            return (f.name.trim() == text) && (i != index);
+        });
+        return !hasDuplicates;
     },
 
     render: function() {
@@ -255,8 +262,11 @@ var Sidebar = React.createClass({
         var items = this.state.fields.map((field, i) => {
             var onChange = this.onFieldChanged.bind(this, i);
             var onRemove = this.onFieldRemovalRequested.bind(this, i);
+            var validate = this.valueAllowed.bind(this, i);
             return <FieldWidget field={field} ref={"field"+i}
-                                onChange={onChange} onRemove={onRemove} />;
+                                onChange={onChange}
+                                onRemove={onRemove}
+                                validate={validate} />;
         });
 
         return (
