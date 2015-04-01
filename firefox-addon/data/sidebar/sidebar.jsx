@@ -59,15 +59,17 @@ var FieldEdit = React.createClass({
     focus: function () {
         return $(this.refs.nameInput.getDOMNode()).focus();
     },
-    onSubmit: function (ev) {
-        ev.preventDefault();
+    confirm: function () {
         if (this.state.ok){
-            console.log("field value changed");
             this.props.onSubmit(this.refs.nameInput.getDOMNode().value.trim());
         }
         else {
             this.focus();
         }
+    },
+    onSubmit: function (ev) {
+        ev.preventDefault();
+        this.confirm();
     },
     onReset: function (ev) {
         ev.preventDefault();
@@ -158,6 +160,12 @@ var FieldWidget = React.createClass({
         this.setState({editing: false});
         this.props.onRemove();
     },
+    confirm: function () {
+        if (!this.state.editing){
+            return;
+        }
+        this.refs.editor.confirm();
+    },
     render: function () {
         var name = this.props.field.name;
         if (this.state.editing){
@@ -203,6 +211,7 @@ var Sidebar = React.createClass({
 
     addField: function(name){
         var el = {'name': name};
+        this.state.fields.forEach((f, i) => this.refs["field"+i].confirm());
         var state = update(this.state, {fields: {$push: [el]}});
         this.setState(state, function(){
             var id = "field" + (this.state.fields.length-1);
