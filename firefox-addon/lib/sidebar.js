@@ -21,20 +21,25 @@ function AnnotationSidebar(annotators){
                 if (!this.tabId){
                     console.error("tab is inactive");
                 }
-                var annotator = this.annotators[this.tabId];
-                annotator.getTemplate((html) => {
+                this.annotator.getTemplate((html) => {
                     this.saveTemplateToFile(html);
                 })
             });
 
             worker.port.on("field:renamed", (oldName, newName) => {
-                var annotator = this.annotators[this.tabId];
-                annotator.renameField(oldName, newName);
+                this.annotator().renameField(oldName, newName);
             });
 
             worker.port.on("field:removed", (name) => {
-                var annotator = this.annotators[this.tabId];
-                annotator.removeField(name);
+                this.annotator().removeField(name);
+            });
+
+            worker.port.on("field:hovered", (name) => {
+                this.annotator().highlightField(name);
+            });
+
+            worker.port.on("field:unhovered", (name) => {
+                this.annotator().unhighlightField(name);
             });
 
             this.sidebarWorker = worker;
@@ -48,8 +53,8 @@ function AnnotationSidebar(annotators){
         this.tabId = tab.id;
         this.update(tab);
     });
-    tabs.on("deactivate", (tab) => {this.tabId = null;});
-    tabs.on("close", (tab) => {this.tabId = null;});
+    tabs.on("deactivate", (tab) => {this.tabId = null});
+    tabs.on("close", (tab) => {this.tabId = null});
 }
 
 AnnotationSidebar.prototype = {
@@ -62,6 +67,10 @@ AnnotationSidebar.prototype = {
         else {
             this.sidebar.show();
         }
+    },
+
+    annotator: function () {
+        return this.annotators[this.tabId];
     },
 
     /* Ask user where to save the template and save it. */

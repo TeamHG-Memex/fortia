@@ -2,7 +2,7 @@
 A canvas-backed rectangle which follows a DOM element.
 It is drawed over fabric.js canvas.
 */
-function ElementOutline(canvas, options, caption="", showCaption="mouseover") {
+function ElementOutline(canvas, options, caption="", showCaption="mouseover", textBg="#43AC6A") {
     this.elem = null;
     this.canvas = canvas;  // fabric.js StaticCanvas
     this.caption = caption;
@@ -25,7 +25,9 @@ function ElementOutline(canvas, options, caption="", showCaption="mouseover") {
         fontSize: this.textHeight,
         color: "#FFFFFF",
         fill: "#FFFFFF",
-        textBackgroundColor: '#43AC6A',
+        textBackgroundColor: textBg,
+        //textBackgroundColor: '#43AC6A',
+        //textBackgroundColor: '#F04124',
         visible: false,
     });
     this.group = new fabric.Group([this.rect, this.text]);

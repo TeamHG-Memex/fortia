@@ -100,6 +100,16 @@ TabAnnotator.prototype = {
         this.worker.port.emit("removeField", name);
     },
 
+    /* Highlight all annotations with this field name */
+    highlightField: function (name) {
+        this.worker.port.emit("highlightField", name);
+    },
+
+    /* Don't highlight annotations with this field name */
+    unhighlightField: function (name) {
+        this.worker.port.emit("unhighlightField", name);
+    },
+
     _injectScripts: function(){
         var tab = this.tab;
         console.log("_injectScripts to ", tab.id);

@@ -1,8 +1,12 @@
-/* Class for displaying current annotations on Canvas overlay */
+/*
+Class for displaying current annotations on Canvas overlay.
+*/
 
 function AnnotationsDisplay(overlay, annotations) {
     this.overlay = overlay;
     this.annotations = annotations;
+    this.sticky = {};     // field name -> true/false
+    this.tempStickyId = null;
     this.outlines = [];
     this.outlineOptions = {
         strokeWidth: 2,
@@ -13,7 +17,10 @@ function AnnotationsDisplay(overlay, annotations) {
     };
     this.highlightMode = "mouseover";  // other allowed values: "always", "never"
 
-    var doUpdateAll = (info) => {this.updateAll(info.id)};
+    var doUpdateAll = (info) => {
+        this.tempStickyId = info.id;
+        this.updateAll();
+    };
     this.onAnnotationAdded = doUpdateAll;
     this.onAnnotationRenamed = doUpdateAll;
     this.onAnnotationRemoved = doUpdateAll;
@@ -30,8 +37,28 @@ AnnotationsDisplay.prototype = {
         this.outlines = [];
     },
 
+    /* highlight annotations for the field `name` permanently */
+    addSticky: function (name) {
+        if (!this.sticky[name]){
+            console.log("addSticky", name);
+            this.sticky[name] = true;
+            this.updateAll();
+        }
+        this.tempStickyId = null;
+    },
+
+    /* don't highlight annotations for the field `name` permanently */
+    removeSticky: function (name) {
+        if (this.sticky[name]){
+            console.log("removeSticky", name);
+            delete this.sticky[name];
+            this.updateAll();
+        }
+        this.tempStickyId = null;
+    },
+
     /* Update all elements based on current annotations */
-    updateAll: function (highlightId) {
+    updateAll: function () {
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
             var id = this.annotations.getid(elem);
@@ -42,11 +69,23 @@ AnnotationsDisplay.prototype = {
                 }
                 return attr + " → " + ann[attr];
             }).join(";");
+
+            var isSticky = Object.keys(ann).some(attr => {
+                var field = ann[attr];
+                return this.sticky[field];
+            });
+            var mode = (id == this.tempStickyId)? "once" : this.highlightMode;
+            if (isSticky) {
+                mode = "always";
+            }
+
             var outline = new ElementOutline(
                 this.overlay.canvas,
                 this.outlineOptions,
                 " " + caption + " ",
-                (id == highlightId)? "once" : this.highlightMode
+                mode,
+                "#43AC6A"
+                //mode == "always"? '#F04124': "#43AC6A"
             );
             outline.trackElem(elem);
             return outline;
@@ -60,5 +99,3 @@ AnnotationsDisplay.prototype = {
         this.clear();
     }
 };
-
-

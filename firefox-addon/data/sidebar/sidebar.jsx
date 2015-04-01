@@ -30,7 +30,13 @@ var EmptyMessage = React.createClass({
 var BootstrapListGroup = React.createClass({
     render: function () {
         var items = this.props.children.map(function (item) {
-            return <li className="list-group-item">{item}</li>
+            return (
+                <li className="list-group-item"
+                    onMouseEnter={item.props.onMouseEnter}
+                    onMouseLeave={item.props.onMouseLeave}>
+                    {item}
+                </li>
+            );
         });
         return <ul className="list-group">{items}</ul>;
     }
@@ -175,7 +181,7 @@ var FieldWidget = React.createClass({
                               validate={this.props.validate} />;
         }
         else{
-            return <FieldDisplay name={name} onClick={this.showEditor} />;
+            return <FieldDisplay name={name} onClick={this.showEditor}/>;
         }
     }
 });
@@ -253,6 +259,14 @@ var Sidebar = React.createClass({
         addon.port.emit("field:removed", field.name);
     },
 
+    onFieldMouseEnter: function (index, ev) {
+        addon.port.emit("field:hovered", this.state.fields[index].name);
+    },
+
+    onFieldMouseLeave: function (index, ev) {
+        addon.port.emit("field:unhovered", this.state.fields[index].name);
+    },
+
     valueAllowed: function (index, text) {
         var text = text.trim();
         if (text.trim() == ""){
@@ -272,9 +286,13 @@ var Sidebar = React.createClass({
             var onChange = this.onFieldChanged.bind(this, i);
             var onRemove = this.onFieldRemovalRequested.bind(this, i);
             var validate = this.valueAllowed.bind(this, i);
+            var onEnter = this.onFieldMouseEnter.bind(this, i);
+            var onLeave = this.onFieldMouseLeave.bind(this, i);
             return <FieldWidget field={field} ref={"field"+i}
                                 onChange={onChange}
                                 onRemove={onRemove}
+                                onMouseEnter={onEnter}
+                                onMouseLeave={onLeave}
                                 validate={validate} />;
         });
 
