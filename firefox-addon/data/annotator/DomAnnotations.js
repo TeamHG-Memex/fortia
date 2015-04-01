@@ -61,6 +61,12 @@ DomAnnotations.prototype = {
         return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
     },
 
+    /* Return a list of all linked field names */
+    linkedFields: function (elem) {
+        var ann = this.getdata(elem).annotations;
+        return Object.keys(ann).map((attr) => ann[attr]);
+    },
+
     /* Remove all annotations from a DOM element */
     removeAnnotations: function (elem) {
         $(elem).attr("data-scrapy-annotate", null);

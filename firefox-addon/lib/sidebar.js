@@ -74,8 +74,12 @@ AnnotationSidebar.prototype = {
     },
 
     addField: function (name) {
-        this.sidebarWorker.port.emit("fields:add", name);
-    }
+        this.sidebarWorker.port.emit("field:add", name);
+    },
+
+    editField: function (name) {
+        this.sidebarWorker.port.emit("field:edit", name);
+    },
 };
 
 exports.AnnotationSidebar = AnnotationSidebar;

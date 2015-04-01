@@ -191,8 +191,11 @@ var Sidebar = React.createClass({
     },
 
     componentDidMount: function () {
-        addon.port.on("fields:add", (name) => {
+        addon.port.on("field:add", (name) => {
             this.addField(name);
+        });
+        addon.port.on("field:edit", (name) => {
+            this.showFieldEditor(name);
         });
     },
 
@@ -209,11 +212,20 @@ var Sidebar = React.createClass({
         });
     },
 
+    showFieldEditor: function (name) {
+        var id = this.state.fields.findIndex((f) => f.name == name);
+        if (id != -1){
+            this.refs["field"+id].showEditor();
+        }
+        else{
+            console.error("bad field name", name, this.state.fields);
+        }
+    },
+
     onFieldChanged: function (index, changes) {
         var newFields = this.state.fields.map((field, i) => {
             return (index == i) ? _.extend({}, field, changes) : field;
         });
-
 
         var oldName = this.state.fields[index].name;
         var newName = changes.name;

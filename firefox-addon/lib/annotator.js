@@ -104,11 +104,17 @@ TabAnnotator.prototype = {
         var tab = this.tab;
         console.log("_injectScripts to ", tab.id);
         this.worker = tab.attach({contentScriptFile: this.scripts});
-        this.worker.port.on("annotation:added", (info) => {
-            console.log("annotation:added", info);
+
+        this.worker.port.on("field:added", (info) => {
+            console.log("field:added", info);
             var field = info["data"]["annotations"]["content"];
             this.sidebar.addField(field);
-        })
+        });
+
+        this.worker.port.on("field:edit", (name) => {
+            console.log("field:edit", name);
+            this.sidebar.editField(name);
+        });
     },
 };
 

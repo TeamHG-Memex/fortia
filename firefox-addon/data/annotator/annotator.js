@@ -12,7 +12,7 @@ function Annotator(){
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
     this.annotations.on("added", (info) => {
-        self.port.emit("annotation:added", info);
+        self.port.emit("field:added", info);
     });
 
     self.port.on("renameField", (oldName, newName) => {
@@ -23,7 +23,7 @@ function Annotator(){
         this.annotations.removeField(name);
     });
 
-    this.setTool(new CreateFieldAnnotator(this.overlay, this.annotations));
+    this.setTool(new FieldAnnotator(this.overlay, this.annotations));
 }
 
 Annotator.prototype = {
@@ -56,16 +56,17 @@ Annotator.prototype = {
 
 
 /* A component for annotating new item fields */
-function CreateFieldAnnotator(overlay, annotations) {
-    console.log("creating CreateFieldAnnotator");
+function FieldAnnotator(overlay, annotations) {
+    console.log("creating FieldAnnotator");
     this.overlay = overlay;
     this.selector = new ElementSelector(this.overlay);
 
     this.selector.on("click", function(elem){
-        // If there was an existing annotation, do nothing
-        // XXX: try the UI to check what should we really do here
         if (annotations.getid(elem)) {
-            console.log("existing");
+            $(elem).blur();
+            annotations.linkedFields(elem).forEach((name) => {
+                self.port.emit("field:edit", name);
+            });
             return;
         }
 
@@ -78,12 +79,12 @@ function CreateFieldAnnotator(overlay, annotations) {
 }
 
 
-CreateFieldAnnotator.prototype = {
+FieldAnnotator.prototype = {
     destroy: function() {this.selector.destroy();}
 };
 
-/* enable .on, .off and .emit methods for CreateFieldAnnotator */
-Minivents(CreateFieldAnnotator.prototype);
+/* enable .on, .off and .emit methods for FieldAnnotator */
+Minivents(FieldAnnotator.prototype);
 
 
 
