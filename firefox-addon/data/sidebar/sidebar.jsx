@@ -5,8 +5,8 @@ Sidebar JSX (React) code
 var fields = [];
 if (addon.mocked){
     fields = [
-        {name: "title"},
-        {name: "score"},
+        {name: "title", prevName: "title"},
+        {name: "score", prevName: "score"},
     ];
 }
 
@@ -79,8 +79,8 @@ var FieldEdit = React.createClass({
     },
     onReset: function (ev) {
         ev.preventDefault();
-        this.refs.nameInput.getDOMNode().value = this.props.name;
-        this.props.onSubmit(this.props.name);
+        this.refs.nameInput.getDOMNode().value = this.props.prevName;
+        this.props.onSubmit(this.props.prevName);
     },
     onRemove: function (ev) {
         ev.preventDefault();
@@ -90,7 +90,11 @@ var FieldEdit = React.createClass({
     },
     onInputChange: function (ev) {
         var text = ev.target.value;
-        this.setState({ok: this.props.validate(text)});
+        this.setState({ok: this.props.validate(text)}, () => {
+            if (this.state.ok) {
+                this.props.onChange(text.trim());
+            }
+        });
     },
     onInputKeyDown: function (ev) {
         // Esc => cancel; Down => open the dropdown.
@@ -160,6 +164,9 @@ var FieldWidget = React.createClass({
     },
     onSubmit: function(newName){
         this.setState({editing: false});
+        this.props.onChange({name: newName, prevName: newName});
+    },
+    onChange: function (newName) {
         this.props.onChange({name: newName});
     },
     onRemove: function () {
@@ -173,15 +180,16 @@ var FieldWidget = React.createClass({
         this.refs.editor.confirm();
     },
     render: function () {
-        var name = this.props.field.name;
+        var field = this.props.field;
         if (this.state.editing){
-            return <FieldEdit name={name} ref="editor"
+            return <FieldEdit name={field.name} prevName={field.prevName} ref="editor"
                               onSubmit={this.onSubmit}
                               onRemove={this.onRemove}
+                              onChange={this.onChange}
                               validate={this.props.validate} />;
         }
         else{
-            return <FieldDisplay name={name} onClick={this.showEditor}/>;
+            return <FieldDisplay name={field.name} onClick={this.showEditor}/>;
         }
     }
 });
@@ -216,7 +224,7 @@ var Sidebar = React.createClass({
     },
 
     addField: function(name){
-        var el = {'name': name};
+        var el = {name: name, prevName: name};
         this.state.fields.forEach((f, i) => this.refs["field"+i].confirm());
         var state = update(this.state, {fields: {$push: [el]}});
         this.setState(state, function(){
@@ -236,16 +244,16 @@ var Sidebar = React.createClass({
     },
 
     onFieldChanged: function (index, changes) {
-        var newFields = this.state.fields.map((field, i) => {
-            return (index == i) ? _.extend({}, field, changes) : field;
-        });
-
+        //console.log("changed", index, changes);
         var oldName = this.state.fields[index].name;
         var newName = changes.name;
         if (oldName != newName){
             addon.port.emit("field:renamed", oldName, newName);
         }
 
+        var newFields = this.state.fields.map((field, i) => {
+            return (index == i) ? _.extend({}, field, changes) : field;
+        });
         this.setState({fields: newFields});
     },
 
