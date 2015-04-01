@@ -145,7 +145,9 @@ var FieldWidget = React.createClass({
         return {editing: false}
     },
     showEditor: function(){
-        this.setState({editing: true});
+        this.setState({editing: true}, () => {
+            this.refs.editor.focus().select();
+        });
     },
     onSubmit: function(newName){
         this.setState({editing: false});
@@ -158,7 +160,7 @@ var FieldWidget = React.createClass({
     render: function () {
         var name = this.props.field.name;
         if (this.state.editing){
-            return <FieldEdit name={name} onSubmit={this.onSubmit} onRemove={this.onRemove} />;
+            return <FieldEdit name={name} ref="editor" onSubmit={this.onSubmit} onRemove={this.onRemove} />;
         }
         else{
             return <FieldDisplay name={name} onClick={this.showEditor} />;
