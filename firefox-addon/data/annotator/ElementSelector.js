@@ -21,6 +21,15 @@ function ElementSelector(overlay, outlineOptions) {
         $(elem).on("click", this.onClick).css({cursor: this.cursor});
     };
 
+    this.onMouseLeave = (event) => {
+        if (this.currentElement == null) {
+            return;
+        }
+        this._restoreElement();
+        this.outline.trackElem(null);
+        this.currentElement = null;
+    };
+
     this.onClick = (event) => {
         var elem = event.target;
         this.emit("click", elem);
@@ -32,6 +41,7 @@ function ElementSelector(overlay, outlineOptions) {
     this.onOverlayResize = () => {this.outline.update()};
     this.overlay.on("resize", this.onOverlayResize);
     $("*").on("mouseover", this.onMouseOver);
+    $(document).on("mouseleave", this.onMouseLeave);
 }
 
 ElementSelector.prototype = {
@@ -42,6 +52,7 @@ ElementSelector.prototype = {
         this._restoreElement();
         this.overlay.off("resize", this.onOverlayResize);
         $("*").off("mouseover", this.onMouseOver);
+        $(document).off("mouseleave", this.onMouseLeave);
         this.outline.destroy();
         delete this.outline;
     },
