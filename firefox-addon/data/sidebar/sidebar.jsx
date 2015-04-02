@@ -224,8 +224,8 @@ var Sidebar = React.createClass({
     },
 
     addField: function(name){
+        this.confirmAll();
         var el = {name: name, prevName: name};
-        this.state.fields.forEach((f, i) => this.refs["field"+i].confirm());
         var state = update(this.state, {fields: {$push: [el]}});
         this.setState(state, function(){
             var id = "field" + (this.state.fields.length-1);
@@ -233,9 +233,14 @@ var Sidebar = React.createClass({
         });
     },
 
+    confirmAll: function () {
+        this.state.fields.forEach((f, i) => this.refs["field"+i].confirm());
+    },
+
     showFieldEditor: function (name) {
         var id = this.state.fields.findIndex(f => f.name == name);
         if (id != -1){
+            this.confirmAll();
             this.refs["field"+id].showEditor();
         }
         else{
