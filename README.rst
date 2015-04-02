@@ -1,14 +1,20 @@
-## Fortia
+Fortia
+======
 
-Firefox extension for scrapely, integrated with SourcePin.
+Firefox extension for scrapely_, integrated with SourcePin.
 
-## Running
+Running
+-------
 
-To run the extension, install [cfx](https://developer.mozilla.org/en-US/Add-ons/SDK/Tutorials/Installation),
+To run the extension, install cfx_,
 then change folder to `firefox-addon` and execute `cfx run` 
 from the command line.
 
-## Addon Structure
+.. _scrapely: https://github.com/scrapy/scrapely
+.. _cfx: https://developer.mozilla.org/en-US/Add-ons/SDK/Tutorials/Installation
+
+Addon Structure
+---------------
 
 The addon consists of several parts which communicate with each other using
 messages. The parts are: 
