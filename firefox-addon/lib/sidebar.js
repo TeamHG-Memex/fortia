@@ -21,7 +21,7 @@ function AnnotationSidebar(annotators){
                 if (!this.tabId){
                     console.error("tab is inactive");
                 }
-                this.annotator.getTemplate((html) => {
+                this.annotator().getTemplate((html) => {
                     this.saveTemplateToFile(html);
                 })
             });
@@ -75,8 +75,16 @@ AnnotationSidebar.prototype = {
 
     /* Ask user where to save the template and save it. */
     saveTemplateToFile: function (html) {
-        let filename = "scrapely-template-" + this.nextSuggestedIndex + ".html";
-        let ok = dialogs.save("Save the template", filename, html);
+        var filename = "scraper-" + this.nextSuggestedIndex + ".json";
+        var pageData = {
+            url: tabs.activeTab.url,
+            headers: [],
+            body: html,
+            page_id: null,
+            encoding: 'utf-8'
+        };
+        var data = JSON.stringify({templates: [pageData]});
+        var ok = dialogs.save("Save the template", filename, data);
         if (ok){
             this.nextSuggestedIndex += 1;
         }
