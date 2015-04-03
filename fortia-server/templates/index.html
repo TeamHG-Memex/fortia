@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Fortia Demo Server</title>
+    <link href="http://maxcdn.bootstrapcdn.com/bootswatch/3.3.4/yeti/bootstrap.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Fortia</h1>
+            <p>
+                Fortia is an open source Firefox extension for automatic data extraction.
+            </p>
+            <p>
+                Go to a web page and click on data you want to extract - Fortia
+                will extract similar data from all other pages.
+            </p>
+            <p>
+                Techical details: under the hood Fortia uses
+                <a href="https://github.com/scrapy/scrapely">Scrapely</a> library.
+                To activate the extension create a link with <code>fortia://</code> protocol.
+            </p>
+            <p>
+                <a class="btn btn-success btn-lg" href="{{ fortia_url }}" role="button">Try Fortia</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

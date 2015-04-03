@@ -5,5 +5,12 @@
   "description": "GUI for Scrapely",
   "author": "",
   "license": "MIT",
-  "version": "0.1"
+  "version": "0.1",
+
+  "preferences": [{
+     "name": "serverUrl",
+     "title": "Default Fortia server URL",
+     "type": "string",
+     "value": "http://127.0.0.1:5000"
+  }]
 }

@@ -4,7 +4,7 @@ var ui = require("sdk/ui");
 var { Hotkey } = require("sdk/hotkeys");
 var { AnnotationSidebar } = require("./sidebar.js");
 var { TabAnnotator } = require("./annotator.js");
-
+var protocol = require('./protocol.js');
 
 // a list of per-tab annotator UI objects
 var annotators = {};
@@ -63,3 +63,10 @@ var toggleUIhotkey = Hotkey({
 // for debugging - go to some initial url
 tabs.activeTab.url = "http://stackoverflow.com/questions/29268299/difference-between-oracle-client-and-odac";
 
+
+// handle fortia: links
+protocol.events.on("newChannel", function (parsed) {
+    console.log("newChannel", parsed);
+    button.click();
+    // TODO: click only when page is loaded
+});
