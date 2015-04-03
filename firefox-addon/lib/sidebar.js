@@ -96,7 +96,7 @@ AnnotationSidebar.prototype = {
 
     editField: function (name) {
         this.sidebarWorker.port.emit("field:edit", name);
-    },
+    }
 };
 
 exports.AnnotationSidebar = AnnotationSidebar;

@@ -213,7 +213,7 @@ var SaveTemplateAsButton = React.createClass({
 });
 
 
-var Sidebar = React.createClass({
+var AnnotationSidebar = React.createClass({
     getInitialState: function() {
         return {fields: fields};
     },
@@ -293,7 +293,7 @@ var Sidebar = React.createClass({
 
     render: function() {
         if (!this.state.fields.length){
-            return <EmptyMessage/>;
+            return <div className="container"><EmptyMessage/></div>;
         }
         var items = this.state.fields.map((field, i) => {
             var onChange = this.onFieldChanged.bind(this, i);
@@ -310,11 +310,93 @@ var Sidebar = React.createClass({
         });
 
         return (
-            <div>
+            <div className="container">
                 <BootstrapListGroup>{items}</BootstrapListGroup>
                 <SaveTemplateAsButton/>
             </div>
         );
+    }
+});
+
+
+var FortiaHeader = React.createClass({
+    //onAnnotateClick: function () {
+    //    if (this.props.mode != 'annotate'){
+    //        this.props.onModeChange('annotate');
+    //    }
+    //},
+    //onBrowseClick: function () {
+    //    if (this.props.mode != 'browse'){
+    //        this.props.onModeChange('browse');
+    //    }
+    //},
+    render: function () {
+        //var annClass = "btn btn-success";
+        //var browseClass = "btn btn-success";
+        //if (this.props.mode == "annotate"){
+        //    annClass += ' active';
+        //}
+        //else if (this.props.mode == "browse") {
+        //    browseClass += ' active';
+        //}
+
+        return (
+            <nav className="navbar navbar-default navbar-static-top">
+                <div className="container">
+                    <div className="navbar-header pull-left">
+                        <span className="navbar-brand">Fortia</span>
+                    </div>
+                    {/*
+                    <div className="navbar-header pull-right">
+                        <ul className="nav pull-left">
+                            <li className="pull-right">
+                                <div className="btn-group btn-group-sm" role="group"
+                                     style={{'marginTop': 7, 'marginRight': 15}}>
+                                    <a role="button" type="button" className={annClass} onClick={this.onAnnotateClick} title="Annotate">
+                                        <span className="glyphicon glyphicon-record"></span>
+                                    </a>
+                                    <a role="button" type="button" className={browseClass} onClick={this.onBrowseClick} title="Browse">
+                                        <span className="glyphicon glyphicon-play"></span>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    */}
+                </div>
+            </nav>
+        )
+    }
+});
+
+
+var BrowseSidbar = React.createClass({
+    render: function () {
+        return <div className="alert alert-danger container">
+            Browse sidebar is not implemented
+        </div>;
+    }
+});
+
+
+var Sidebar = React.createClass({
+    getInitialState: function() {
+        return {mode: 'annotate'};
+    },
+
+    //onModeChange: function (mode) {
+    //    this.setState({mode: mode}, function () {
+    //        addon.port.emit("mode:" + mode);
+    //    });
+    //},
+
+    render: function () {
+        var header = <FortiaHeader /* mode={this.state.mode} onModeChange={this.onModeChange}*/ />;
+        if (this.state.mode == "annotate") {
+            return <div>{header}<AnnotationSidebar/></div>;
+        } else if (this.state.mode == "browse") {
+            return <div>{header}<BrowseSidbar/></div>;
+        }
     }
 });
 
