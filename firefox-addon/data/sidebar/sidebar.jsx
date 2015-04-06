@@ -5,8 +5,8 @@ Sidebar JSX (React) code
 var fields = [];
 if (addon.mocked){
     fields = [
-        {name: "title", prevName: "title"},
-        {name: "score", prevName: "score"},
+        {name: "title", prevName: "title", editing: false},
+        {name: "score", prevName: "score", editing: false},
     ];
 }
 
@@ -65,9 +65,12 @@ var FieldEdit = React.createClass({
     focus: function () {
         return $(this.refs.nameInput.getDOMNode()).focus();
     },
-    confirm: function () {
+    getValue: function () {
+        return this.refs.nameInput.getDOMNode().value.trim();
+    },
+    submitIfOk: function () {
         if (this.state.ok){
-            this.props.onSubmit(this.refs.nameInput.getDOMNode().value.trim());
+            this.props.onSubmit(this.getValue());
         }
         else {
             this.focus();
@@ -75,7 +78,7 @@ var FieldEdit = React.createClass({
     },
     onSubmit: function (ev) {
         ev.preventDefault();
-        this.confirm();
+        this.submitIfOk();
     },
     onReset: function (ev) {
         ev.preventDefault();
@@ -89,10 +92,10 @@ var FieldEdit = React.createClass({
         }
     },
     onInputChange: function (ev) {
-        var text = ev.target.value;
+        var text = this.getValue();
         this.setState({ok: this.props.validate(text)}, () => {
             if (this.state.ok) {
-                this.props.onChange(text.trim());
+                this.props.onChange(text);
             }
         });
     },
@@ -153,48 +156,6 @@ var FieldEdit = React.createClass({
 });
 
 
-var FieldWidget = React.createClass({
-    getInitialState: function () {
-        return {editing: false}
-    },
-    showEditor: function(){
-        this.setState({editing: true}, () => {
-            this.refs.editor.focus().select();
-        });
-    },
-    onSubmit: function(newName){
-        this.setState({editing: false});
-        this.props.onChange({name: newName, prevName: newName});
-    },
-    onChange: function (newName) {
-        this.props.onChange({name: newName});
-    },
-    onRemove: function () {
-        this.setState({editing: false});
-        this.props.onRemove();
-    },
-    confirm: function () {
-        if (!this.state.editing){
-            return;
-        }
-        this.refs.editor.confirm();
-    },
-    render: function () {
-        var field = this.props.field;
-        if (this.state.editing){
-            return <FieldEdit name={field.name} prevName={field.prevName} ref="editor"
-                              onSubmit={this.onSubmit}
-                              onRemove={this.onRemove}
-                              onChange={this.onChange}
-                              validate={this.props.validate} />;
-        }
-        else{
-            return <FieldDisplay name={field.name} onClick={this.showEditor}/>;
-        }
-    }
-});
-
-
 var SaveTemplateAsButton = React.createClass({
     onSaveAs: function (ev) {
         addon.port.emit("template:saveas");
@@ -220,46 +181,66 @@ var AnnotationSidebar = React.createClass({
 
     componentDidMount: function () {
         addon.port.on("field:add", (name) => {this.addField(name)});
-        addon.port.on("field:edit", (name) => {this.showFieldEditor(name)});
+        addon.port.on("field:edit", (name) => {this.showEditorByName(name)});
     },
 
     addField: function(name){
-        this.confirmAll();
-        var el = {name: name, prevName: name};
-        var state = update(this.state, {fields: {$push: [el]}});
-        this.setState(state, function(){
-            var id = "field" + (this.state.fields.length-1);
-            this.refs[id].showEditor();
+        this.confirmAll(() => {
+            var el = {name: name, prevName: name};
+            var state = update(this.state, {fields: {$push: [el]}});
+            this.setState(state, function(){
+                this.showEditorByIndex(this.state.fields.length-1);
+            });
         });
     },
 
-    confirmAll: function () {
-        this.state.fields.forEach((f, i) => this.refs["field"+i].confirm());
+    confirmAll: function (callback) {
+        var newFields = this.state.fields.map((field, i) => {
+            if (!field.editing){
+                return field;
+            }
+            if (!this.refs["field" + i].state.ok){
+                return field;
+            }
+            return _.extend({}, field, {editing: false});
+        });
+        this.setState({fields: newFields}, callback);
     },
 
-    showFieldEditor: function (name) {
+    showEditorByName: function (name) {
         var id = this.state.fields.findIndex(f => f.name == name);
         if (id != -1){
-            this.confirmAll();
-            this.refs["field"+id].showEditor();
+            this.showEditorByIndex(id);
         }
         else{
             console.error("bad field name", name, this.state.fields);
         }
     },
 
-    onFieldChanged: function (index, changes) {
+    showEditorByIndex: function (index, callback) {
+        this.confirmAll(() => {
+            this._updateField(index, {editing: true}, callback);
+        });
+    },
+
+    updateField: function (index, changes, callback) {
         //console.log("changed", index, changes);
         var oldName = this.state.fields[index].name;
         var newName = changes.name;
         if (oldName != newName){
             addon.port.emit("field:renamed", oldName, newName);
         }
+        this._updateField(index, changes, callback);
+    },
 
-        var newFields = this.state.fields.map((field, i) => {
+    getUpdatedFields: function (index, changes) {
+        return this.state.fields.map((field, i) => {
             return (index == i) ? _.extend({}, field, changes) : field;
         });
-        this.setState({fields: newFields});
+    },
+
+    _updateField: function (index, changes, callback) {
+        this.setState({fields: this.getUpdatedFields(index, changes)}, callback);
     },
 
     onFieldRemovalRequested: function (index) {
@@ -296,17 +277,35 @@ var AnnotationSidebar = React.createClass({
             return <div className="container"><EmptyMessage/></div>;
         }
         var items = this.state.fields.map((field, i) => {
-            var onChange = this.onFieldChanged.bind(this, i);
+            var ref = "field" + i;
             var onRemove = this.onFieldRemovalRequested.bind(this, i);
             var validate = this.valueAllowed.bind(this, i);
             var onEnter = this.onFieldMouseEnter.bind(this, i);
             var onLeave = this.onFieldMouseLeave.bind(this, i);
-            return <FieldWidget field={field} ref={"field"+i}
-                                onChange={onChange}
-                                onRemove={onRemove}
-                                onMouseEnter={onEnter}
-                                onMouseLeave={onLeave}
-                                validate={validate} />;
+            var showEditor = this.showEditorByIndex.bind(this, i, undefined);
+
+            var onSubmit = (name) => {
+                this.confirmAll(() => {
+                    this.updateField(i, {name: name, prevName: name, editing: false});
+                });
+            };
+            var onChange = (name) => {this.updateField(i, {name: name})};
+
+            if (!field.editing) {
+                return <FieldDisplay name={field.name} ref={ref}
+                                  onClick={showEditor}
+                                  onMouseEnter={onEnter}
+                                  onMouseLeave={onLeave} />;
+            }
+            else {
+                return <FieldEdit name={field.name} prevName={field.prevName} ref={ref}
+                                  validate={validate}
+                                  onSubmit={onSubmit}
+                                  onChange={onChange}
+                                  onRemove={onRemove}
+                                  onMouseEnter={onEnter}
+                                  onMouseLeave={onLeave} />;
+            }
         });
 
         return (
