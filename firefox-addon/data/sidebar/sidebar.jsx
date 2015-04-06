@@ -187,11 +187,9 @@ var AnnotationSidebar = React.createClass({
 
     addField: function(name){
         this.confirmAll(() => {
-            var el = {name: name, prevName: name};
+            var el = {name: name, prevName: name, editing: true};
             var state = update(this.state, {fields: {$push: [el]}});
-            this.setState(state, function(){
-                this.showEditorByIndex(this.state.fields.length-1);
-            });
+            this.setState(state);
         });
     },
 
