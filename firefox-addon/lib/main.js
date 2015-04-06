@@ -10,6 +10,7 @@ var protocol = require('./protocol.js');
 var annotators = {};
 
 function getAnnotator(tab){
+    var tab = tab || tabs.activeTab;
     if (!annotators[tab.id]){
         annotators[tab.id] = new TabAnnotator(tab, sidebar);
     }
@@ -61,12 +62,16 @@ var toggleUIhotkey = Hotkey({
 
 
 // for debugging - go to some initial url
-tabs.activeTab.url = "http://stackoverflow.com/questions/29268299/difference-between-oracle-client-and-odac";
+//tabs.activeTab.url = "http://stackoverflow.com/questions/29268299/difference-between-oracle-client-and-odac";
+tabs.activeTab.url = "http://127.0.0.1:5000";
 
 
 // handle fortia: links
 protocol.events.on("newChannel", function (parsed) {
+    // Firefox redirects to the new URL automatically.
+    // TODO: wait for redirect before displaying the annotator.
     console.log("newChannel", parsed);
-    button.click();
-    // TODO: click only when page is loaded
+    var annotator = getAnnotator();
+    annotator.activate();
+    sidebar.update();
 });
