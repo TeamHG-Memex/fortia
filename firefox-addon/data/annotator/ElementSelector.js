@@ -35,7 +35,7 @@ function ElementSelector(overlay, outlineOptions) {
         this.emit("click", elem);
         event.stopPropagation();
         event.preventDefault();
-        console.log("clicked", elem.tagName);
+        console.log("clicked", elem.tagName, getUniquePath($(elem)));
     };
 
     this.onOverlayResize = () => {this.outline.update()};
