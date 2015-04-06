@@ -43,6 +43,25 @@ var BootstrapListGroup = React.createClass({
 });
 
 
+
+var SaveTemplateAsButton = React.createClass({
+    onSaveAs: function (ev) {
+        addon.port.emit("template:saveas");
+    },
+    render: function () {
+        return (
+            <div className="row">
+                <div className="col-xs-12">
+                    <div className="btn-group btn-group-justified" role="group">
+                        <a className="btn btn-default" role="button" onClick={this.onSaveAs}>Save as..</a>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+});
+
+
 var FieldDisplay = React.createClass({
     render: function () {
         return (
@@ -152,24 +171,6 @@ var FieldEdit = React.createClass({
 
             </form>
         );
-    }
-});
-
-
-var SaveTemplateAsButton = React.createClass({
-    onSaveAs: function (ev) {
-        addon.port.emit("template:saveas");
-    },
-    render: function () {
-        return (
-            <div className="row">
-                <div className="col-xs-12">
-                    <div className="btn-group btn-group-justified" role="group">
-                        <a className="btn btn-default" role="button" onClick={this.onSaveAs}>Save as..</a>
-                    </div>
-                </div>
-            </div>
-        )
     }
 });
 
@@ -319,49 +320,13 @@ var AnnotationSidebar = React.createClass({
 
 
 var FortiaHeader = React.createClass({
-    //onAnnotateClick: function () {
-    //    if (this.props.mode != 'annotate'){
-    //        this.props.onModeChange('annotate');
-    //    }
-    //},
-    //onBrowseClick: function () {
-    //    if (this.props.mode != 'browse'){
-    //        this.props.onModeChange('browse');
-    //    }
-    //},
     render: function () {
-        //var annClass = "btn btn-success";
-        //var browseClass = "btn btn-success";
-        //if (this.props.mode == "annotate"){
-        //    annClass += ' active';
-        //}
-        //else if (this.props.mode == "browse") {
-        //    browseClass += ' active';
-        //}
-
         return (
             <nav className="navbar navbar-default navbar-static-top">
                 <div className="container">
                     <div className="navbar-header pull-left">
                         <span className="navbar-brand">Fortia</span>
                     </div>
-                    {/*
-                    <div className="navbar-header pull-right">
-                        <ul className="nav pull-left">
-                            <li className="pull-right">
-                                <div className="btn-group btn-group-sm" role="group"
-                                     style={{'marginTop': 7, 'marginRight': 15}}>
-                                    <a role="button" type="button" className={annClass} onClick={this.onAnnotateClick} title="Annotate">
-                                        <span className="glyphicon glyphicon-record"></span>
-                                    </a>
-                                    <a role="button" type="button" className={browseClass} onClick={this.onBrowseClick} title="Browse">
-                                        <span className="glyphicon glyphicon-play"></span>
-                                    </a>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                    */}
                 </div>
             </nav>
         )
@@ -369,33 +334,13 @@ var FortiaHeader = React.createClass({
 });
 
 
-var BrowseSidbar = React.createClass({
-    render: function () {
-        return <div className="alert alert-danger container">
-            Browse sidebar is not implemented
-        </div>;
-    }
-});
-
-
 var Sidebar = React.createClass({
     getInitialState: function() {
-        return {mode: 'annotate'};
+        return {};
     },
 
-    //onModeChange: function (mode) {
-    //    this.setState({mode: mode}, function () {
-    //        addon.port.emit("mode:" + mode);
-    //    });
-    //},
-
     render: function () {
-        var header = <FortiaHeader /* mode={this.state.mode} onModeChange={this.onModeChange}*/ />;
-        if (this.state.mode == "annotate") {
-            return <div>{header}<AnnotationSidebar/></div>;
-        } else if (this.state.mode == "browse") {
-            return <div>{header}<BrowseSidbar/></div>;
-        }
+        return <div><FortiaHeader /><AnnotationSidebar/></div>;
     }
 });
 
