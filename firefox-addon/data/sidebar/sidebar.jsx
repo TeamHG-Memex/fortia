@@ -504,7 +504,7 @@ var Sidebar = React.createClass({
     },
 
     activateTemplate: function (id) {
-        console.log('activateTemplate', id, this.state.templates);
+        console.log('Sidebar.activateTemplate', id);
 
         // add an empty template if it is not known
         var templates = this.state.templates;
@@ -513,7 +513,7 @@ var Sidebar = React.createClass({
         }
 
         this.setState({activeTemplateId: id, templates: templates}, () => {
-            console.log('activateTemplate done', id, this.state.templates);
+            console.log('Sidebar.activateTemplate done', id, this.state.templates);
         });
     },
 

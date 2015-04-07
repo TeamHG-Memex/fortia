@@ -92,7 +92,7 @@ AnnotationSidebar.prototype = {
     },
 
     hide: function () {
-        console.log("sidebar hide");
+        console.log("AnnotationSidebar.hide()");
         if (!this.sidebarWorker) {
             this.sidebar.hide();
         }
@@ -106,7 +106,7 @@ AnnotationSidebar.prototype = {
     },
 
     show: function () {
-        console.log("sidebar show");
+        console.log("AnnotationSidebar.show()");
         if (!this.sidebarWorker) {
             this.sidebar.show();
         }
@@ -141,7 +141,7 @@ AnnotationSidebar.prototype = {
     },
 
     rememberState: function (callback) {
-        console.log("rememberState");
+        console.log("AnnotationSidebar.rememberState()");
         if (!this.sidebarWorker){
             console.log("can't remember state - no worker");
             return;
@@ -155,7 +155,7 @@ AnnotationSidebar.prototype = {
     },
 
     restoreState: function (callback) {
-        console.log("restoreState");
+        console.log("AnnotationSidebar.restoreState()");
         this.setState(this.sidebarState, () => {
             console.log("state restored, activating", this.tabId);
             this.sidebarWorker.port.emit("template:activate", this.tabId);
