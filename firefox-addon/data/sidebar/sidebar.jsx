@@ -50,17 +50,48 @@ var BootstrapListGroup = React.createClass({
 });
 
 
-
-var SaveTemplateAsButton = React.createClass({
+/* "Finish" button with a dropdown */
+var FinishButtons = React.createClass({
     onSaveAs: function (ev) {
-        addon.port.emit("template:saveas");
+        ev.preventDefault();
+        this.props.onSaveAs();
+    },
+    render: function () {
+        return (
+            <div className="row">
+                <div class="btn-group btn-block">
+                    <div className="col-xs-12">
+                        <a role="button" className="btn btn-info col-xs-9">Finish</a>
+                        <div class="col-xs-3">
+                            <a role="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                <span className="glyphicon glyphicon-menu-hamburger"></span>
+                            </a>
+                            <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                                <li><a href="#" onClick={this.onSaveAs}>Save as..</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+});
+
+
+/* "Save As" button */
+var SaveAsButton = React.createClass({
+    onSaveAs: function (ev) {
+        ev.preventDefault();
+        this.props.onSaveAs();
     },
     render: function () {
         return (
             <div className="row">
                 <div className="col-xs-12">
-                    <div className="btn-group btn-group-justified" role="group">
-                        <a className="btn btn-default" role="button" onClick={this.onSaveAs}>Save as..</a>
+                    <div className="btn-group btn-group-justified">
+                        <div className="btn-group" role="group">
+                            <button role="button" className="btn btn-primary" onClick={this.onSaveAs}>Save as..</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -232,10 +263,17 @@ var TemplateEditor = React.createClass({
             }
         });
 
+        if (this.props.useFinish){
+            var buttons = <FinishButtons onSaveAs={this.props.onSaveAs} />;
+        }
+        else {
+            var buttons = <SaveAsButton onSaveAs={this.props.onSaveAs} />
+        }
+
         return (
             <div className="container">
                 <BootstrapListGroup>{items}</BootstrapListGroup>
-                <SaveTemplateAsButton/>
+                {buttons}
             </div>
         );
     }
@@ -425,6 +463,10 @@ var Sidebar = React.createClass({
         return this.state.templates.filter(tpl => tpl.key == actId)[0];
     },
 
+    onSaveAs: function () {
+        addon.port.emit("template:saveas");
+    },
+
     render: function () {
         var tpl = this.getActiveTemplate() || {key: null, fields: []};
         if (!tpl){
@@ -462,6 +504,8 @@ var Sidebar = React.createClass({
                                 onFieldChange={onFieldChange}
                                 onFieldRemove={onFieldRemove}
                                 showEditorByIndex={showEditorByIndex}
+                                onSaveAs={this.onSaveAs}
+                                useFinish={false}
                 />
             </div>
         );
