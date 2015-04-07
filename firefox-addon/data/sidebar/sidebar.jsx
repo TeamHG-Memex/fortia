@@ -2,11 +2,18 @@
 Sidebar JSX (React) code
 */
 
-var fields = [];
+var templates = [];
+var activeTemplateId = null;
 if (addon.mocked){
-    fields = [
-        {name: "title", prevName: "title", editing: false},
-        {name: "score", prevName: "score", editing: false},
+    activeTemplateId = '-3-2';
+    templates = [
+        {
+            key: activeTemplateId,
+            fields: [
+                {name: "title", prevName: "title", editing: false},
+                {name: "score", prevName: "score", editing: false},
+            ]
+        }
     ];
 }
 
@@ -63,9 +70,12 @@ var SaveTemplateAsButton = React.createClass({
 
 
 var FieldDisplay = React.createClass({
+    onClick: function (ev) {
+        this.props.onClick();  // drop all arguments
+    },
     render: function () {
         return (
-            <div onClick={this.props.onClick}>
+            <div onClick={this.onClick}>
                 {this.props.name}
                 <span className="glyphicon glyphicon-pencil pull-right" role="button"></span>
             </div>
@@ -175,89 +185,9 @@ var FieldEdit = React.createClass({
 });
 
 
-var AnnotationSidebar = React.createClass({
-    getInitialState: function() {
-        return {fields: fields};
-    },
-
-    componentDidMount: function () {
-        addon.port.on("field:add", (name) => {this.addField(name)});
-        addon.port.on("field:edit", (name) => {this.showEditorByName(name)});
-    },
-
-    addField: function(name){
-        this.confirmAll(() => {
-            var el = {name: name, prevName: name, editing: true};
-            var state = update(this.state, {fields: {$push: [el]}});
-            this.setState(state);
-        });
-    },
-
-    confirmAll: function (callback) {
-        var newFields = this.state.fields.map((field, i) => {
-            if (!field.editing){
-                return field;
-            }
-            if (!this.refs["field" + i].state.ok){
-                return field;
-            }
-            return _.extend({}, field, {editing: false});
-        });
-        this.setState({fields: newFields}, callback);
-    },
-
-    showEditorByName: function (name) {
-        var id = this.state.fields.findIndex(f => f.name == name);
-        if (id != -1){
-            this.showEditorByIndex(id);
-        }
-        else{
-            console.error("bad field name", name, this.state.fields);
-        }
-    },
-
-    showEditorByIndex: function (index, callback) {
-        this.confirmAll(() => {
-            this._updateField(index, {editing: true}, callback);
-        });
-    },
-
-    updateField: function (index, changes, callback) {
-        //console.log("changed", index, changes);
-        var oldName = this.state.fields[index].name;
-        var newName = changes.name;
-        if (oldName != newName){
-            addon.port.emit("field:renamed", oldName, newName);
-        }
-        this._updateField(index, changes, callback);
-    },
-
-    getUpdatedFields: function (index, changes) {
-        return this.state.fields.map((field, i) => {
-            return (index == i) ? _.extend({}, field, changes) : field;
-        });
-    },
-
-    _updateField: function (index, changes, callback) {
-        this.setState({fields: this.getUpdatedFields(index, changes)}, callback);
-    },
-
-    onFieldRemovalRequested: function (index) {
-        //console.log("remove field", index);
-        var field = this.state.fields[index];
-
-        this.setState(update(this.state, {
-            fields: {$splice: [[index, 1]]}      // remove fields[index]
-        }));
-        addon.port.emit("field:removed", field.name);
-    },
-
-    onFieldMouseEnter: function (index, ev) {
-        addon.port.emit("field:hovered", this.state.fields[index].name);
-    },
-
-    onFieldMouseLeave: function (index, ev) {
-        addon.port.emit("field:unhovered", this.state.fields[index].name);
+var TemplateEditor = React.createClass({
+    fieldOk: function (i) {
+        return this.refs['field' + i].state.ok;
     },
 
     valueAllowed: function (index, text) {
@@ -265,30 +195,25 @@ var AnnotationSidebar = React.createClass({
         if (text.trim() == ""){
             return false;
         }
-        var hasDuplicates = this.state.fields.some((f, i) => {
+        var hasDuplicates = this.props.fields.some((f, i) => {
             return (f.name.trim() == text) && (i != index);
         });
         return !hasDuplicates;
     },
 
     render: function() {
-        if (!this.state.fields.length){
+        if (!this.props.fields.length){
             return <div className="container"><EmptyMessage/></div>;
         }
-        var items = this.state.fields.map((field, i) => {
+        var items = this.props.fields.map((field, i) => {
             var ref = "field" + i;
-            var onRemove = this.onFieldRemovalRequested.bind(this, i);
             var validate = this.valueAllowed.bind(this, i);
-            var onEnter = this.onFieldMouseEnter.bind(this, i);
-            var onLeave = this.onFieldMouseLeave.bind(this, i);
-            var showEditor = this.showEditorByIndex.bind(this, i, undefined);
-
-            var onSubmit = (name) => {
-                this.confirmAll(() => {
-                    this.updateField(i, {name: name, prevName: name, editing: false});
-                });
-            };
-            var onChange = (name) => {this.updateField(i, {name: name})};
+            var onRemove = this.props.onFieldRemove.bind(this, i);
+            var onEnter = this.props.onFieldMouseEnter.bind(this, i);
+            var onLeave = this.props.onFieldMouseLeave.bind(this, i);
+            var showEditor = this.props.showEditorByIndex.bind(this, i);
+            var onSubmit = this.props.onFieldSubmit.bind(this, i);
+            var onChange = this.props.onFieldChange.bind(this, i);
 
             if (!field.editing) {
                 return <FieldDisplay name={field.name} ref={ref}
@@ -332,13 +257,214 @@ var FortiaHeader = React.createClass({
 });
 
 
+var NoTemplate = React.createClass({
+    getInitialState: function () {
+        return {danger: false, timer: null};
+    },
+    componentDidMount: function () {
+        var timer = setTimeout(() => {this.setState({danger: true})}, this.props.delay);
+        this.setState({timer: timer});
+    },
+    componentWillUnmount: function () {
+        if (this.state.timer){
+            clearTimeout(this.state.timer);
+        }
+    },
+    render: function () {
+        if (!this.state.danger){
+            return <div></div>;
+        }
+        return (
+            <div className="alert alert-danger container">
+            Error: no templates selected.
+            </div>
+        );
+    }
+});
+
+
 var Sidebar = React.createClass({
     getInitialState: function() {
-        return {};
+        console.log("Sidebar.getInitialState()");
+        return {
+            templates: templates,
+            activeTemplateId: activeTemplateId
+        };
+    },
+
+    componentDidMount: function () {
+        addon.port.emit("sidebar:ready");
+
+        addon.port.on("template:activate", (id) => {this.activateTemplate(id)});
+        addon.port.on("field:add", (id, name) => {this.addField(id, name)});
+        addon.port.on("field:edit", (id, name) => {this.showEditorByName(id, name)});
+        addon.port.on("state:get", () => {addon.port.emit('sidebar:state', this.state)});
+        addon.port.on("state:set", (state) => {
+            this.replaceState(state, () => {
+                addon.port.emit("sidebar:state-updated");
+            })
+        });
+    },
+
+    addField: function(id, name, callback){
+        this.confirmAll(id, () => {
+            this.updateTemplate(id, tpl => {
+                var field = {name: name, prevName: name, editing: true};
+                return update(tpl, {fields: {$push: [field]}});
+            }, callback);
+        });
+    },
+
+    getUpdatedTemplates: function(id, process) {
+        return this.state.templates.map(tpl => {
+            if (tpl.key != id){
+                return tpl;
+            }
+            return process(tpl);
+        });
+    },
+
+    updateTemplate: function (id, process, callback) {
+        this.setState({templates: this.getUpdatedTemplates(id, process)}, callback);
+    },
+
+    updateTemplateFields: function (id, process, callback) {
+        this.updateTemplate(id, tpl => {
+            if (tpl.key != this.state.activeTemplateId) {
+                console.log('template is inactive', id);
+                return tpl;
+            }
+
+            var fields = process(tpl.fields, tpl);
+            return update(tpl, {fields: {$set: fields}});
+        }, callback);
+    },
+
+    _updateTemplateField: function (id, index, process, callback) {
+        this.updateTemplateFields(id, fields => {
+            return fields.map((field, i) => {
+                if (i != index){
+                    return field;
+                }
+                return process(field, i);
+            });
+        }, callback);
+    },
+
+    updateTemplateField: function (id, index, changes, callback) {
+        this._updateTemplateField(id, index, (field) => {
+            var oldName = field.name;
+            var newName = changes.name;
+            if (newName && oldName != newName){
+                addon.port.emit("field:renamed", oldName, newName);
+            }
+            return _.extend({}, field, changes)
+        }, callback);
+    },
+
+    confirmAll: function (id, callback) {
+        this.updateTemplateFields(id, fields => {
+            return fields.map((field, i) => {
+                if (!field.editing) {
+                    return field;
+                }
+
+                // XXX: not clean. This assumes the current editor
+                // corresponds to the template being confirmed.
+                if (!this.refs.editor.fieldOk(i)) {
+                    return field;
+                }
+                return update(field, {editing: {$set: false}});
+            });
+        }, callback);
+    },
+
+    showEditorByName: function (id, name) {
+        var template = this.state.templates.filter(tpl => tpl.key == id)[0];
+        var index = template.fields.findIndex(f => f.name == name);
+        if (index != -1){
+            this.showEditorByIndex(id, index);
+        }
+        else{
+            console.error("bad field name", name, template.fields);
+        }
+    },
+
+    showEditorByIndex: function (id, index, callback) {
+        this.confirmAll(id, () => {
+            this.updateTemplateField(id, index, {editing: true}, callback);
+        });
+    },
+
+    onFieldRemove: function (id, index) {
+        var removedField = null;
+        this.updateTemplateFields(id, fields => {
+            removedField = fields[index];
+            return update(fields, {$splice: [[index, 1]]});  // remove fields[index]
+        }, () => {
+            addon.port.emit("field:removed", removedField.name);
+        });
+    },
+
+    activateTemplate: function (id) {
+        console.log('activateTemplate', id, this.state.templates);
+
+        // add an empty template if it is not known
+        var templates = this.state.templates;
+        if (!this.state.templates.some(tpl => tpl.key == id)){
+            templates.push({key: id, fields: []});
+        }
+
+        this.setState({activeTemplateId: id, templates: templates}, () => {
+            console.log('activateTemplate done', id, this.state.templates);
+        });
+    },
+
+    getActiveTemplate: function () {
+        var actId = this.state.activeTemplateId;
+        return this.state.templates.filter(tpl => tpl.key == actId)[0];
     },
 
     render: function () {
-        return <div><FortiaHeader /><AnnotationSidebar/></div>;
+        var tpl = this.getActiveTemplate() || {key: null, fields: []};
+        if (!tpl){
+            return <div><FortiaHeader/><NoTemplate delay={200} /></div>;
+        }
+
+        var onEnter = function (index, ev) {
+            addon.port.emit("field:hovered", tpl.fields[index].name, tpl.key);
+        };
+
+        var onLeave = function (index, ev) {
+            addon.port.emit("field:unhovered", tpl.fields[index].name, tpl.key);
+        };
+
+        var onFieldSubmit = (index, name) => {
+            this.confirmAll(tpl.key, () => {
+                var changes = {name: name, prevName: name, editing: false};
+                this.updateTemplateField(tpl.key, index, changes);
+            });
+        };
+        var onFieldChange = (index, name) => {
+            this.updateTemplateField(tpl.key, index, {name: name});
+        };
+
+        var showEditorByIndex = this.showEditorByIndex.bind(this, tpl.key);
+        var onFieldRemove = this.onFieldRemove.bind(this, tpl.key);
+
+        return (
+            <div>
+                <FortiaHeader />
+                <TemplateEditor ref="editor" key={tpl.key} fields={tpl.fields}
+                                onFieldMouseEnter={onEnter}
+                                onFieldMouseLeave={onLeave}
+                                onFieldSubmit={onFieldSubmit}
+                                onFieldChange={onFieldChange}
+                                onFieldRemove={onFieldRemove}
+                                showEditorByIndex={showEditorByIndex}
+                />
+            </div>
+        );
     }
 });
 

@@ -125,7 +125,7 @@ TabAnnotator.prototype = {
             console.log("field:edit", name);
             this.sidebar.editField(name);
         });
-    },
+    }
 };
 
 exports.TabAnnotator = TabAnnotator;

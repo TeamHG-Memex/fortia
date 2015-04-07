@@ -11,38 +11,47 @@ for Sidebar events instead of calling TabAnnotator methods from a sideabar.
 */
 function AnnotationSidebar(annotators){
     this.annotators = annotators;
+    this.sidebarState = {templates: [], activeTemplateId: null};
     this.sidebar = ui.Sidebar({
         id: 'my-sidebar',
         title: 'Fortia Sidebar',
         url: "./sidebar/sidebar.html",
         onReady: (worker) => {
-            worker.port.on("template:saveas", () => {
-                console.log("add-on script got SaveAs request");
-                if (!this.tabId){
-                    console.error("tab is inactive");
-                }
-                this.annotator().getTemplate((html) => {
-                    this.saveTemplateToFile(html);
-                })
-            });
-
-            worker.port.on("field:renamed", (oldName, newName) => {
-                this.annotator().renameField(oldName, newName);
-            });
-
-            worker.port.on("field:removed", (name) => {
-                this.annotator().removeField(name);
-            });
-
-            worker.port.on("field:hovered", (name) => {
-                this.annotator().highlightField(name);
-            });
-
-            worker.port.on("field:unhovered", (name) => {
-                this.annotator().unhighlightField(name);
-            });
-
             this.sidebarWorker = worker;
+            worker.port.on('sidebar:ready', () => {
+                console.log("attaching to sidebar");
+                this.restoreState();
+
+                worker.port.on("template:saveas", () => {
+                    console.log("add-on script got SaveAs request");
+                    if (!this.tabId){
+                        console.error("tab is inactive");
+                    }
+                    this.annotator().getTemplate((html) => {
+                        this.saveTemplateToFile(html);
+                    })
+                });
+
+                worker.port.on("field:renamed", (oldName, newName) => {
+                    this.annotator().renameField(oldName, newName);
+                });
+
+                worker.port.on("field:removed", (name) => {
+                    this.annotator().removeField(name);
+                });
+
+                worker.port.on("field:hovered", (name) => {
+                    this.annotator().highlightField(name);
+                });
+
+                worker.port.on("field:unhovered", (name) => {
+                    this.annotator().unhighlightField(name);
+                });
+
+            });
+        },
+        onDetach: () => {
+            this.sidebarWorker = null;
         }
     });
     this.nextSuggestedIndex = 1;
@@ -53,7 +62,14 @@ function AnnotationSidebar(annotators){
         this.tabId = tab.id;
         this.update(tab);
     });
-    tabs.on("deactivate", (tab) => {this.tabId = null});
+    tabs.on("deactivate", (tab) => {
+        console.log("deactivate tab:", tab.id);
+        this.tabId = null;
+        this.rememberState((state) => {
+            state.activeTemplateId = null;
+            return state;
+        });
+    });
     tabs.on("close", (tab) => {this.tabId = null});
 }
 
@@ -62,11 +78,85 @@ AnnotationSidebar.prototype = {
         var tab = tab || tabs.activeTab;
         var annotator = this.annotators[tab.id];
         if (!annotator || !annotator.active) {
+            this.hide();
+        }
+        else {
+            this.show();
+        }
+    },
+
+    hide: function () {
+        console.log("sidebar hide");
+        if (!this.sidebarWorker) {
             this.sidebar.hide();
         }
         else {
+            this.rememberState((state) => {
+                this.sidebar.hide();
+                state.activeTemplateId = null;
+                return state;
+            });
+        }
+    },
+
+    show: function () {
+        console.log("sidebar show");
+        if (!this.sidebarWorker) {
             this.sidebar.show();
         }
+        else {
+            this.restoreState(() => this.sidebar.show());
+        }
+    },
+
+    getState: function (callback) {
+        if (this._getStateLocked){
+            // FIXME
+            console.error("can't run getState: locked");
+        }
+        this._getStateLocked = true;
+        this.sidebarWorker.port.emit("state:get");
+        this.sidebarWorker.port.once("sidebar:state", (state) => {
+            this._getStateLocked = false;
+            callback(state);
+        });
+    },
+
+    setState: function (state, callback) {
+        if (this._setStateLocked){
+            // FIXME
+            console.error("can't run setState: locked");
+        }
+        this.sidebarWorker.port.emit("state:set", state);
+        this.sidebarWorker.port.once("sidebar:state-updated", () => {
+            this._setStateLocked = false;
+            callback();
+        });
+    },
+
+    rememberState: function (callback) {
+        console.log("rememberState");
+        if (!this.sidebarWorker){
+            console.log("can't remember state - no worker");
+            return;
+        }
+        this.getState((state) => {
+            if (callback) {
+                state = callback(state);
+            }
+            this.sidebarState = state;
+        });
+    },
+
+    restoreState: function (callback) {
+        console.log("restoreState");
+        this.setState(this.sidebarState, () => {
+            console.log("state restored, activating", this.tabId);
+            this.sidebarWorker.port.emit("template:activate", this.tabId);
+            if (callback) {
+                callback();
+            }
+        });
     },
 
     annotator: function () {
@@ -75,6 +165,7 @@ AnnotationSidebar.prototype = {
 
     /* Ask user where to save the template and save it. */
     saveTemplateToFile: function (html) {
+        // FIXME: it should be per-template
         var filename = "scraper-" + this.nextSuggestedIndex + ".json";
         var pageData = {
             url: tabs.activeTab.url,
@@ -90,12 +181,13 @@ AnnotationSidebar.prototype = {
         }
     },
 
+    // FIXME: template id is just tab id for now
     addField: function (name) {
-        this.sidebarWorker.port.emit("field:add", name);
+        this.sidebarWorker.port.emit("field:add", this.tabId, name);
     },
 
     editField: function (name) {
-        this.sidebarWorker.port.emit("field:edit", name);
+        this.sidebarWorker.port.emit("field:edit", this.tabId, name);
     }
 };
 
