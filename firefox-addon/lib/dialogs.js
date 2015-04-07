@@ -20,7 +20,7 @@ function createFile(path, text){
 
 
 /* Display a save dialog and write 'text' content to the selected file */
-function saveDialog(title, defaultFileName, text, extension="html"){
+function saveDialog(title, defaultFileName, text, extension="json"){
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     let window = getMostRecentBrowserWindow();
 
@@ -29,6 +29,9 @@ function saveDialog(title, defaultFileName, text, extension="html"){
     fp.defaultString = defaultFileName;
     if (extension == "html") {
         fp.appendFilter("HTML files", Ci.nsIFilePicker.filterHTML);
+    }
+    else if (extension == "json") {
+        fp.appendFilter("JSON files", "*.json");
     }
     fp.appendFilter("All files", Ci.nsIFilePicker.filterAll);
 
