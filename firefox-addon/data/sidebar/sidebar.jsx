@@ -21,6 +21,15 @@ if (addon.mocked){
 const update = React.addons.update;
 
 
+// use this.props method, but don't pass an event to it.
+function useProps(name){
+    return function (ev) {
+        ev.preventDefault();
+        this.props[name]();
+    }
+}
+
+
 var Icon = React.createClass({
     render: function () {
         return <span className={"glyphicon glyphicon-" + this.props.name}/>;
@@ -57,29 +66,55 @@ var BootstrapListGroup = React.createClass({
 });
 
 
-/* "Finish" button with a dropdown */
-var FinishButtons = React.createClass({
-    onSaveAs: function (ev) {
-        ev.preventDefault();
-        this.props.onSaveAs();
-    },
-    render: function () {
+var BootstrapButtonRow = React.createClass({
+    render: function(){
         return (
             <div className="row">
-                <div class="btn-group btn-block">
+                <div className="btn-block">
                     <div className="col-xs-12">
-                        <a role="button" className="btn btn-info col-xs-9">Finish</a>
-                        <div class="col-xs-3">
-                            <a role="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                                <span className="glyphicon glyphicon-menu-hamburger"></span>
-                            </a>
-                            <ul className="dropdown-menu dropdown-menu-right" role="menu">
-                                <li><a href="#" onClick={this.onSaveAs}>Save as..</a></li>
-                            </ul>
-                        </div>
+                        {this.props.children}
                     </div>
                 </div>
             </div>
+        );
+    }
+});
+
+
+
+/* "Finish" button with a dropdown */
+var FinishButtons = React.createClass({
+    onSaveAs: useProps("onSaveAs"),
+    onCancel: useProps("onCancel"),
+    onHelp: useProps("onHelp"),
+
+    render: function () {
+        return (
+            <BootstrapButtonRow>
+                <a role="button" className="btn btn-info col-xs-9">Finish</a>
+                <div>
+                    <a role="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                        <Icon name="menu-hamburger"/>
+                    </a>
+                    <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                        <li>
+                            <a href="#" onClick={this.onSaveAs}>
+                                <Icon name="save"/>&nbsp; Save to a local file..
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onClick={this.onCancel}>
+                                <Icon name="remove"/>&nbsp; Cancel annotation
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onClick={this.onHelp}>
+                                <Icon name="book"/>&nbsp; Help
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </BootstrapButtonRow>
         )
     }
 });
@@ -87,30 +122,39 @@ var FinishButtons = React.createClass({
 
 /* "Save As" button */
 var SaveAsButton = React.createClass({
-    onSaveAs: function (ev) {
-        ev.preventDefault();
-        this.props.onSaveAs();
-    },
+    onSaveAs: useProps("onSaveAs"),
+    onCancel: useProps("onCancel"),
+    onHelp: useProps("onHelp"),
+
     render: function () {
         return (
-            <div className="row">
-                <div className="col-xs-12">
-                    <div className="btn-group btn-group-justified">
-                        <div className="btn-group" role="group">
-                            <button role="button" className="btn btn-primary" onClick={this.onSaveAs}>Save as..</button>
-                        </div>
-                    </div>
+            <BootstrapButtonRow>
+                <a role="button" className="btn btn-info col-xs-9" onClick={this.onSaveAs}>Save as..</a>
+                <div>
+                    <a role="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                        <Icon name="menu-hamburger"/>
+                    </a>
+                    <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                        <li>
+                            <a href="#" onClick={this.onCancel}>
+                                <Icon name="remove"/>&nbsp; Cancel annotation
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" onClick={this.onHelp}>
+                                <Icon name="book"/>&nbsp; Help
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            </BootstrapButtonRow>
         )
     }
 });
 
 
 var FieldDisplay = React.createClass({
-    onClick: function (ev) {
-        this.props.onClick();  // drop all arguments
-    },
+    onClick: useProps("onClick"),
     render: function () {
         return (
             <div onClick={this.onClick}>
@@ -269,10 +313,16 @@ var TemplateEditor = React.createClass({
         });
 
         if (this.props.useFinish){
-            var buttons = <FinishButtons onSaveAs={this.props.onSaveAs} />;
+            var buttons = <FinishButtons
+                               onSaveAs={this.props.onSaveAs}
+                               onCancel={this.props.onCancelAnnotation}
+                               onHelp={this.props.onHelp} />;
         }
         else {
-            var buttons = <SaveAsButton onSaveAs={this.props.onSaveAs} />
+            var buttons = <SaveAsButton
+                               onSaveAs={this.props.onSaveAs}
+                               onCancel={this.props.onCancelAnnotation}
+                               onHelp={this.props.onHelp} />;
         }
 
         return (
@@ -364,11 +414,15 @@ var Sidebar = React.createClass({
                 return tpl;
             }
             return process(tpl);
-        });
+        }).filter(tpl => !!tpl);
     },
 
     updateTemplate: function (id, process, callback) {
         this.setState({templates: this.getUpdatedTemplates(id, process)}, callback);
+    },
+
+    removeTemplate: function (id, callback) {
+        this.updateTemplate(id, tpl => null, callback);
     },
 
     updateTemplateFields: function (id, process, callback) {
@@ -472,6 +526,18 @@ var Sidebar = React.createClass({
         addon.port.emit("template:saveas");
     },
 
+    onCancelAnnotation: function (id) {
+        if (confirm("Are you sure? The current annotation will be discarded.")) {
+            this.removeTemplate(id, () => {
+                addon.port.emit("template:remove", id);
+            });
+        }
+    },
+
+    onHelp: function () {
+        alert("Sorry, help is not ready yet.")
+    },
+
     render: function () {
         var tpl = this.getActiveTemplate() || {key: null, fields: []};
         if (!tpl){
@@ -498,6 +564,7 @@ var Sidebar = React.createClass({
 
         var showEditorByIndex = this.showEditorByIndex.bind(this, tpl.key);
         var onFieldRemove = this.onFieldRemove.bind(this, tpl.key);
+        var onCancelAnnotation = this.onCancelAnnotation.bind(this, tpl.key);
 
         return (
             <div>
@@ -509,7 +576,9 @@ var Sidebar = React.createClass({
                                 onFieldChange={onFieldChange}
                                 onFieldRemove={onFieldRemove}
                                 showEditorByIndex={showEditorByIndex}
+                                onCancelAnnotation={onCancelAnnotation}
                                 onSaveAs={this.onSaveAs}
+                                onHelp={this.onHelp}
                                 useFinish={false}
                 />
             </div>

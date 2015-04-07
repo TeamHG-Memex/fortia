@@ -32,6 +32,12 @@ function AnnotationSidebar(annotators){
                     })
                 });
 
+                worker.port.on("template:remove", () => {
+                    console.log("Current template is removed");
+                    this.annotator().deactivate();
+                    this.hide(() => {});
+                });
+
                 worker.port.on("field:renamed", (oldName, newName) => {
                     this.annotator().renameField(oldName, newName);
                 });
