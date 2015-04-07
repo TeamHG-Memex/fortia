@@ -9,7 +9,7 @@ var protocol = require('./protocol.js');
 // a list of per-tab annotator UI objects
 var annotators = {};
 
-function getAnnotator(tab){
+function getAnnotator(tab) {
     var tab = tab || tabs.activeTab;
     if (!annotators[tab.id]){
         annotators[tab.id] = new TabAnnotator(tab, sidebar);
@@ -26,11 +26,15 @@ tabs.on("close", function(tab){
 var sidebar = new AnnotationSidebar(annotators);
 
 
+// FIXME: currently fortia: links and a button don't work well UI-wise,
+// so the button is disabled.
+
 /* A button for showing/hiding annotation UI */
 var button = ui.ActionButton({
     id: "annotate-button",
     label: "Annotation Tool",
     icon: "./icons/portia-64.png",
+    disabled: true,
     onClick: function(state) {
         var tab = tabs.activeTab;
         console.log("tabs:", tabs.length);
@@ -42,7 +46,7 @@ var button = ui.ActionButton({
         if (annotator.active){
             button.state("tab", {icon: "./icons/portia-64-active.png"});
         }
-        else{
+        else {
             button.state("tab", {icon: "./icons/portia-64.png"});
         }
         sidebar.update();
