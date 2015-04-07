@@ -21,13 +21,20 @@ if (addon.mocked){
 const update = React.addons.update;
 
 
+var Icon = React.createClass({
+    render: function () {
+        return <span className={"glyphicon glyphicon-" + this.props.name}/>;
+    }
+});
+
+
 var EmptyMessage = React.createClass({
     render: function(){
         return (
             <p>
                 You haven't annotated any items yet.
                 Click on the elements you want to extract from the web page &nbsp;
-                <span className="glyphicon glyphicon-arrow-right"></span>
+                <Icon name="arrow-right"/>
             </p>
         );
     }
@@ -196,15 +203,13 @@ var FieldEdit = React.createClass({
                     </button>
                     <ul className="dropdown-menu dropdown-menu-right" role="menu">
                         <li><a href="#" onClick={this.onSubmit} onKeyDown={this.onOkKeyDown} ref="okLink">
-                            <span className="glyphicon glyphicon-ok"></span>
-                            &nbsp;&nbsp;Save
+                            <Icon name="ok"/>&nbsp;&nbsp;Save
                         </a></li>
                         <li><a href="#" onClick={this.onReset}>
-                            <span className="glyphicon glyphicon-repeat"></span>
-                            &nbsp;&nbsp;Cancel
+                            <Icon name="repeat"/>&nbsp;&nbsp;Cancel
                         </a></li>
                         <li><a href="#" onClick={this.onRemove}>
-                            <span className="glyphicon glyphicon-remove"></span>
+                            <Icon name="remove"/>
                             <span className="text-danger">&nbsp;&nbsp;Remove</span>
                         </a></li>
                     </ul>
