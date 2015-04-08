@@ -68,52 +68,49 @@ class Scraper(scrapely.Scraper):
             return cls.fromfile(f)
 
 
-class FortiaSpider(scrapy.Spider):
-    name = 'fortia'
-    scraper = None
-    le = None
-    required_fields = set()
-    follow_links = True
+def get_spider_cls(args):
+    """ Build a Spider class based on command-line arguments """
 
-    def parse(self, response):
-        for record in self.scraper.extract(response):
-            cleaned = {k: self.process_value(v[0]) for k, v in record.items()}
-            if not cleaned:
-                continue
-            if self.required_fields and not self.required_fields & set(cleaned.keys()):
-                continue
-            cleaned['_url'] = response.url
-            yield cleaned
+    required = args['--required']
+    url = args['<url>']
 
-        if self.follow_links:
-            for link in self.le.extract_links(response):
-                yield scrapy.Request(link.url)
+    class FortiaSpider(scrapy.Spider):
+        name = 'fortia'
+        start_urls = [url]
+        scraper = Scraper.load(args['<scraper.json>'])
+        le = LinkExtractor(allow=[re.escape(url) + '.*'])
+        required_fields = set() if not required else set(required.split(','))
+        follow_links = args['--depth'] != '0'
 
-    def process_value(self, value):
-        return " ".join(replace_tags(value).strip().split())
+        def parse(self, response):
+            for record in self.scraper.extract(response):
+                cleaned = {k: self.process_value(v[0]) for k, v in record.items()}
+                if not cleaned:
+                    continue
+                if self.required_fields and not self.required_fields & set(cleaned.keys()):
+                    continue
+                cleaned['_url'] = response.url
+                yield cleaned
+
+            if self.follow_links:
+                for link in self.le.extract_links(response):
+                    yield scrapy.Request(link.url)
+
+        def process_value(self, value):
+            return " ".join(replace_tags(value).strip().split())
+
+    return FortiaSpider
 
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    # print(args)
-    url = args['<url>']
-    depth = int(args['--depth'])
-
-    FortiaSpider.start_urls = [url]
-    FortiaSpider.scraper = Scraper.load(args['<scraper.json>'])
-    FortiaSpider.le = LinkExtractor(allow=[re.escape(url) + '.*'])
-    FortiaSpider.follow_links = depth != 0
-
-    if args['--required']:
-        FortiaSpider.required_fields |= set(args['--required'].split(','))
-
     settings = dict(
         AUTOTHROTTLE_ENABLED=True,
         DOWNLOAD_HANDLERS={'s3': None},
-        DEPTH_LIMIT=depth,
+        DEPTH_LIMIT=int(args['--depth']),
         LOG_LEVEL=log.WARNING if args['--quite'] else log.DEBUG,
         FEED_URI="stdout:",
         FEED_FORMAT=args['--format'],
     )
-
-    crawl(FortiaSpider, settings)
+    spider_cls = get_spider_cls(args)
+    crawl(spider_cls, settings)
