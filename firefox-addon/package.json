@@ -2,15 +2,11 @@
   "name": "fortia",
   "title": "Fortia",
   "id": "jid1-Z7IkxAQ6fKxvlg",
-  "description": "GUI for Scrapely",
-  "author": "",
+  "title": "GUI for Scrapely",
+  "description": "Fortia is an open source extension for automatic data extraction. It provides a GUI for creating Scrapely templates.",
+  "author": "Mikhail Korobov",
   "license": "MIT",
-  "version": "0.1",
-
-  "preferences": [{
-     "name": "serverUrl",
-     "title": "Default Fortia server URL",
-     "type": "string",
-     "value": "http://127.0.0.1:5000"
-  }]
+  "version": "0.0.1",
+  "icon": "data/icons/portia-64-active.png",
+  "homepage": "https://github.com/TeamHG-Memex/fortia"
 }
