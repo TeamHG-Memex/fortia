@@ -2,7 +2,6 @@
   "name": "fortia",
   "title": "Fortia",
   "id": "jid1-Z7IkxAQ6fKxvlg",
-  "title": "GUI for Scrapely",
   "description": "Fortia is an open source extension for automatic data extraction. It provides a GUI for creating Scrapely templates.",
   "author": "Mikhail Korobov",
   "license": "MIT",
