@@ -1,9 +1,8 @@
 var tabs = require("sdk/tabs");
 var ui = require("sdk/ui");
 
-
 /*
-Per-tab annotation UI
+Wrapper for worker Annotator object (for a script injected into a page).
 */
 function TabAnnotator(tab, sidebar){
     console.log("creating TabAnnotator for ", tab.id, tab.url);
@@ -118,11 +117,13 @@ TabAnnotator.prototype = {
         this.worker.port.on("field:added", (info) => {
             console.log("field:added", info);
             var field = info["data"]["annotations"]["content"];
+            // FIXME: sidebar should listen for events
             this.sidebar.addField(field);
         });
 
         this.worker.port.on("field:edit", (name) => {
             console.log("field:edit", name);
+            // FIXME: sidebar should listen for events
             this.sidebar.editField(name);
         });
     }

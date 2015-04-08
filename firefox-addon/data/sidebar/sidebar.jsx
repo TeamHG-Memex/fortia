@@ -389,11 +389,17 @@ var Sidebar = React.createClass({
         addon.port.emit("sidebar:ready");
 
         addon.port.on("template:activate", (id) => {this.activateTemplate(id)});
+        addon.port.on("template:remove", (id) => {
+            this.removeTemplate(id, () => {
+                addon.port.emit("template:removed", id);
+            });
+        });
         addon.port.on("field:add", (id, name) => {this.addField(id, name)});
         addon.port.on("field:edit", (id, name) => {this.showEditorByName(id, name)});
         addon.port.on("state:get", () => {addon.port.emit('sidebar:state', this.state)});
         addon.port.on("state:set", (state) => {
             this.replaceState(state, () => {
+                console.log('sidebar state is set to ', this.state);
                 addon.port.emit("sidebar:state-updated");
             })
         });
@@ -422,7 +428,9 @@ var Sidebar = React.createClass({
     },
 
     removeTemplate: function (id, callback) {
-        this.updateTemplate(id, tpl => null, callback);
+        this.updateTemplate(id, tpl => null, () => {
+            this.setState({activeTemplateId: null}, callback);
+        });
     },
 
     updateTemplateFields: function (id, process, callback) {
@@ -513,7 +521,7 @@ var Sidebar = React.createClass({
         }
 
         this.setState({activeTemplateId: id, templates: templates}, () => {
-            console.log('Sidebar.activateTemplate done', id, this.state.templates);
+            console.log('Sidebar.activateTemplate done; new state is', this.state);
         });
     },
 
@@ -527,11 +535,14 @@ var Sidebar = React.createClass({
     },
 
     onCancelAnnotation: function (id) {
+        alert("Sorry, this feature is not implemented yet.");
+        /*
         if (confirm("Are you sure? The current annotation will be discarded.")) {
             this.removeTemplate(id, () => {
                 addon.port.emit("template:remove", id);
             });
         }
+        */
     },
 
     onHelp: function () {
