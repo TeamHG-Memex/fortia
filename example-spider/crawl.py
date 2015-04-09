@@ -87,7 +87,7 @@ def get_spider_cls(args):
                 cleaned = {k: self.process_value(v[0]) for k, v in record.items()}
                 if not cleaned:
                     continue
-                if self.required_fields and not self.required_fields & set(cleaned.keys()):
+                if self.required_fields <= set(cleaned.keys()):
                     continue
                 cleaned['_url'] = response.url
                 yield cleaned
