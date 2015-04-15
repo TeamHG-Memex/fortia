@@ -28,6 +28,9 @@ function AnnotationsDisplay(overlay, annotations) {
     this.annotations.on("added", this.onAnnotationAdded);
     this.annotations.on("renamed", this.onAnnotationRenamed);
     this.annotations.on("removed", this.onAnnotationRemoved);
+
+    this.onResize = () => this.updateAll();
+    this.overlay.on("resize", this.onResize);
 }
 
 AnnotationsDisplay.prototype = {
@@ -93,6 +96,7 @@ AnnotationsDisplay.prototype = {
     },
 
     destroy: function(){
+        this.overlay.off("resize", this.onResize);
         this.annotations.off("added", this.onAnnotationAdded);
         this.annotations.off("renamed", this.onAnnotationRenamed);
         this.annotations.off("removed", this.onAnnotationRemoved);
