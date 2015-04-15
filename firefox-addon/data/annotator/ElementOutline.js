@@ -37,7 +37,7 @@ function ElementOutline(canvas, options, caption="", showCaption="mouseover", te
             return
         }
         this.text.set("visible", true);
-        this.update();
+        this.updateNow();
     };
     this.onMouseLeave = (ev) => {
         if (this.showCaption != "mouseover" && this.showCaption != "once"){
@@ -47,10 +47,11 @@ function ElementOutline(canvas, options, caption="", showCaption="mouseover", te
         if (this.showCaption == "once"){
             this.showCaption = "mouseover";
         }
-        this.update();
+        this.updateNow();
     };
 
-    this.update(options);  // it updates this.opts if needed
+    this.updateStyle(options);  // it updates this.opts if needed
+    this.update();
     this.canvas.add(this.group);
 }
 
@@ -117,13 +118,18 @@ ElementOutline.prototype = {
         }
 
         this.elem = elem;
-        this.update();
+        this.updateNow();
     },
 
     /* update the rectangle */
-    update: function(options) {
-        this.updateStyle(options);
+    update: function() {
+        this.updateStyle();
         this.updatePosition();
+    },
+
+    /* update the rectangle and redraw the canvas */
+    updateNow: function () {
+        this.update();
         this.canvas.renderAll();
     },
 

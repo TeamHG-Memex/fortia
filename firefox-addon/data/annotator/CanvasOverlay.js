@@ -49,7 +49,7 @@ CanvasOverlay.prototype = {
         };
 
         $(window).on('resize', this._resizeToWindow);
-        this._resizeTimer = setInterval(this._resizeToWindow, 1000);
+        this._resizeTimer = setInterval(this._resizeToWindow, 2000);
         this._resizeToWindow();
     },
 
