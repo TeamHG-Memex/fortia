@@ -8,7 +8,8 @@ function getRandomString() {
 
 /* Return an unique CSS selector for the element */
 function getUniquePath($elem) {
-    var path, node = $elem;
+    var path = '';
+    var node = $elem;
     while (node.length) {
         var realNode = node[0], name = realNode.localName;
         if (!name) {

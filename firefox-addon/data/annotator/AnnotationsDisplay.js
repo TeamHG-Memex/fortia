@@ -64,8 +64,8 @@ AnnotationsDisplay.prototype = {
     updateAll: function () {
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
-            var id = this.annotations.getid(elem);
-            var ann = this.annotations.getdata(elem).annotations;
+            var id = this.annotations.getId(elem);
+            var ann = this.annotations.getData(elem).annotations;
             var caption = Object.keys(ann).map((attr) => {
                 if (attr == "content"){
                     return ann[attr];

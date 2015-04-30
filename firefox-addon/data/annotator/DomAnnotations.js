@@ -34,22 +34,27 @@ function DomAnnotations(){
 
 DomAnnotations.prototype = {
     /* Get element's annotation ID */
-    getid: function (elem) {
+    getId: function (elem) {
         return $(elem).attr("data-scrapy-id");
     },
 
+    /* Return true if there is an annotation for elem */
+    exist: function (elem) {
+        return !!this.getId(elem);
+    },
+
     /* Set element's annotation ID */
-    setid: function (elem, id) {
+    setId: function (elem, id) {
         $(elem).attr("data-scrapy-id", id);
     },
 
     /* Return HTML element by its annotation ID */
-    byid: function (id) {
+    byId: function (id) {
         return $("[data-scrapy-id="+id+"]");
     },
 
     /* Get annotation data stored for DOM element */
-    getdata: function(elem){
+    getData: function(elem){
         var data = $(elem).attr("data-scrapy-annotate");
         if (data) {
             return JSON.parse(data);
@@ -57,13 +62,13 @@ DomAnnotations.prototype = {
     },
 
     /* Store annotation data in a DOM element */
-    setdata: function (elem, data) {
+    setData: function (elem, data) {
         return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
     },
 
     /* Return a list of all linked field names */
     linkedFields: function (elem) {
-        var ann = this.getdata(elem).annotations;
+        var ann = this.getData(elem).annotations;
         return Object.keys(ann).map((attr) => ann[attr]);
     },
 
@@ -85,17 +90,17 @@ DomAnnotations.prototype = {
             this.nextFieldId += 1;
         }
         var id = getRandomString();
-        this.setid(elem, id);
+        this.setId(elem, id);
         var data = {annotations: {[attr]: fieldName}};
-        this.setdata(elem, data).blur();
+        this.setData(elem, data).blur();
         this.emit("added", {id: id, data: data});
     },
 
     /* Rename a field */
     rename: function (oldName, newName) {
         this.allElements().each((idx, elem) => {
-            var data = this.getdata(elem);
-            var id = this.getid(elem);
+            var data = this.getData(elem);
+            var id = this.getId(elem);
             var annotations = data.annotations;
             var renames = [];
             for (let attr of Object.keys(annotations)) {
@@ -104,7 +109,7 @@ DomAnnotations.prototype = {
                     renames.push({id: id, oldName: oldName, name: newName, attr: attr});
                 }
             }
-            this.setdata(elem, data);
+            this.setData(elem, data);
             renames.forEach((info) => this.emit("renamed", info));
         });
     },
@@ -112,8 +117,8 @@ DomAnnotations.prototype = {
     /* Remove all annotations for the field */
     removeField: function (name) {
         this.allElements().each((idx, elem) => {
-            var id = this.getid(elem);
-            var data = this.getdata(elem);
+            var id = this.getId(elem);
+            var data = this.getData(elem);
             var annotations = data.annotations;
             var deletes = [];
             var newAnnotations = {};
@@ -133,7 +138,7 @@ DomAnnotations.prototype = {
             else {
                 // some properties are still present
                 data.annotations = newAnnotations;
-                this.setdata(elem, data);
+                this.setData(elem, data);
             }
 
             deletes.forEach((info) => this.emit("removed", info));
