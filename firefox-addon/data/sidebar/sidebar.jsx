@@ -20,6 +20,16 @@ if (addon.mocked){
 
 const update = React.addons.update;
 
+/*
+Flux ActionCreator, with a twist: Dispatcher is not called directly
+because it is not available in Sidebar context.
+*/
+SidebarActions = {
+    saveTemplateAs: function () {
+        addon.port.emit("SidebarActions.saveTemplateAs");
+    }
+};
+
 
 // use this.props method, but don't pass an event to it.
 function useProps(name){
@@ -531,7 +541,7 @@ var Sidebar = React.createClass({
     },
 
     onSaveAs: function () {
-        addon.port.emit("template:saveas");
+        SidebarActions.saveTemplateAs();
     },
 
     onCancelAnnotation: function (id) {

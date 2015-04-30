@@ -3,6 +3,22 @@ Content script with annotation UI.
 */
 
 /*
+Actions for interacting with the main addon code.
+*/
+AnnotatorActions = {
+    createField: function (elem) {
+        this.emit("createField", {
+            selector: getUniquePath($(elem))
+        });
+    },
+
+    emit: function (action, data) {
+        self.port.emit("AnotatorAction", action, data);
+    }
+};
+
+
+/*
 Main annotator object.
 It creates a canvas overlay and manages annotation tools.
 */
@@ -11,8 +27,9 @@ function Annotator(){
     this.annotations = new DomAnnotations();
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
-    this.annotations.on("added", (info) => {
-        self.port.emit("field:added", info);
+    self.port.on("fieldCreated", (selector, name) => {
+        var elem = $(selector);
+        this.annotations.add(elem, name);
     });
 
     self.port.on("renameField", (oldName, newName) => {
@@ -70,25 +87,31 @@ function FieldAnnotator(overlay, annotations) {
     this.selector = new ElementSelector(this.overlay);
 
     this.selector.on("click", function(elem){
-        if (annotations.getid(elem)) {
+        if (!annotations.exist(elem)){
+            // An element which wasn't previously annotated - create
+            // a new annotation for it:
+            // 1. mapped attribute is 'content';
+            // 2. generate a field name and ask user to change it.
+            console.log("FieldAnnotator create");
+            AnnotatorActions.createField(elem);
+            //annotations.add(elem);
+        }
+        else {
+            // user clicked on the existing annotation - start editing it
+            console.log("FieldAnnotator edit");
             $(elem).blur();
             annotations.linkedFields(elem).forEach((name) => {
                 self.port.emit("field:edit", name);
             });
-            return;
         }
-
-        // An element which wasn't previously annotated - create
-        // a new annotation for it:
-        // 1. mapped attribute is 'content';
-        // 2. generate a field name and ask user to change it.
-        annotations.add(elem);
     });
 }
 
 
 FieldAnnotator.prototype = {
-    destroy: function() {this.selector.destroy();}
+    destroy: function() {
+        this.selector.destroy();
+    }
 };
 
 /* enable .on, .off and .emit methods for FieldAnnotator */

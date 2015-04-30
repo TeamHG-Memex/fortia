@@ -31,7 +31,7 @@ function AnnotationSidebar(button) {
                 console.log("attaching to sidebar");
                 this.restoreSidebarState(tabs.activeTab);
 
-                worker.port.on("template:saveas", () => {
+                worker.port.on("SidebarActions.saveTemplateAs", () => {
                     console.log("add-on script got SaveAs request");
                     if (!this.active){
                         console.error("annotator is inactive");

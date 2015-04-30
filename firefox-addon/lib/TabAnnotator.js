@@ -1,13 +1,16 @@
 var tabs = require("sdk/tabs");
 var ui = require("sdk/ui");
 
+var { AppDispatcher } = require("./dispatcher.js");
+var { TemplateStore } = require("./TemplateStore.js");
+
+
 /*
 Wrapper for worker Annotator object (for a script injected into a page).
 */
-function TabAnnotator(tab, sidebar){
+function TabAnnotator(tab){
     console.log("creating TabAnnotator for ", tab.id, tab.url);
     this.tab = tab;
-    this.sidebar = sidebar;
     this.scripts = [
         "./vendor/jquery-2.1.3.js",
         "./vendor/fabric-1.4.0.js",
@@ -24,19 +27,19 @@ function TabAnnotator(tab, sidebar){
     this.active = false;
 
     tab.on("ready", (tab) => {
-        console.log("ready", tab.id);
         if (tab.url.startsWith("about:")){
             return;
         }
+        console.log("TabAnnotator: tab.ready", tab.id);
         this._injectScripts();
         this.lock();
     });
 
     tab.on("pageshow", (tab) => {
-        console.log("pageshow", tab.id);
         if (tab.url.startsWith("about:")){
             return;
         }
+        console.log("TabAnnotator: tab.pageshow", tab.id);
         this.update();
     });
 
@@ -53,13 +56,13 @@ TabAnnotator.prototype = {
     },
 
     update: function(){
-        console.log("update", this.worker.tab.id);
+        console.log("TabAnnotator.update", this.worker.tab.id);
         if (this.active) {
-            console.log("activate", this.worker.tab.id);
+            console.log("TabAnnotator.activate", this.worker.tab.id);
             this.worker.port.emit("activate");
         }
         else {
-            console.log("deactivate", this.worker.tab.id);
+            console.log("TabAnnotator.deactivate", this.worker.tab.id);
             this.worker.port.emit("deactivate");
         }
     },
@@ -111,22 +114,69 @@ TabAnnotator.prototype = {
 
     _injectScripts: function(){
         var tab = this.tab;
-        console.log("_injectScripts to ", tab.id);
+        console.log("TabAnnotator._injectScripts to ", tab.id);
+
         this.worker = tab.attach({contentScriptFile: this.scripts});
-
-        this.worker.port.on("field:added", (info) => {
-            console.log("field:added", info);
-            var field = info["data"]["annotations"]["content"];
-            // FIXME: sidebar should listen for events
-            this.sidebar.addField(field);
+        this.worker.port.on("AnotatorAction", function (action, data) {
+            data.tabId = tab.id;
+            console.log("AnotatorAction", action, data);
+            AppDispatcher.dispatch({
+                action: action,
+                data: data
+            });
         });
+        TemplateStore.on("fieldCreated", this.onFieldCreated.bind(this));
 
-        this.worker.port.on("field:edit", (name) => {
-            console.log("field:edit", name);
-            // FIXME: sidebar should listen for events
-            this.sidebar.editField(name);
-        });
+        //this.worker.port.on("field:added", (info) => {
+        //    console.log("field:added", info);
+        //    var field = info["data"]["annotations"]["content"];
+        //    // FIXME: sidebar should listen for events
+        //    this.sidebar.addField(field);
+        //});
+        //
+        //this.worker.port.on("field:edit", (name) => {
+        //    console.log("field:edit", name);
+        //    // FIXME: sidebar should listen for events
+        //    this.sidebar.editField(name);
+        //});
+    },
+
+    onFieldCreated: function (templateId, data) {
+        if (templateId != this.tab.id){
+            return;
+        }
+        this.worker.port.emit("fieldCreated", data.selector, data.name);
     }
 };
 
+
+function TabAnnotators() {
+    this.annotators = {};
+}
+
+TabAnnotators.prototype = {
+    getFor: function (tab) {
+        if (!this.existsFor(tab)) {
+            this.annotators[tab.id] = new TabAnnotator(tab);
+        }
+        return this.annotators[tab.id];
+    },
+
+    activateFor: function(tab) {
+        this.getFor(tab).activate();
+    },
+
+    deactivateFor: function (tab) {
+        if (!this.existsFor(tab)){
+            return;
+        }
+        this.annotators[tab.id].deactivate();
+    },
+
+    existsFor: function (tab) { return !!this.annotators[tab.id] },
+};
+
+var annotators = new TabAnnotators();
+
 exports.TabAnnotator = TabAnnotator;
+exports.annotators = annotators;
