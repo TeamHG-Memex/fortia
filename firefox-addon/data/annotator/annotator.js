@@ -94,7 +94,7 @@ function FieldAnnotator(overlay, annotations) {
             // 2. generate a field name and ask user to change it.
             console.log("FieldAnnotator create");
             AnnotatorActions.createField(elem);
-            //annotations.add(elem);
+            // field is actually created in a fieldCreated event handler
         }
         else {
             // user clicked on the existing annotation - start editing it

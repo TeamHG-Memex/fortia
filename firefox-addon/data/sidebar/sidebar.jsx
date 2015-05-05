@@ -2,19 +2,19 @@
 Sidebar JSX (React) code
 */
 
-var templates = [];
-var activeTemplateId = null;
+var template = {
+    key: null,
+    fields: []
+};
+
 if (addon.mocked){
-    activeTemplateId = '-3-2';
-    templates = [
-        {
-            key: activeTemplateId,
-            fields: [
-                {name: "title", prevName: "title", editing: false},
-                {name: "score", prevName: "score", editing: false},
-            ]
-        }
-    ];
+    template = {
+        key: "-3-2",
+        fields: [
+            {name: "title", prevName: "title", editing: false},
+            {name: "score", prevName: "score", editing: false},
+        ]
+    };
 }
 
 
@@ -389,15 +389,17 @@ var NoTemplate = React.createClass({
 var Sidebar = React.createClass({
     getInitialState: function() {
         console.log("Sidebar.getInitialState()");
-        return {
-            templates: templates,
-            activeTemplateId: activeTemplateId
-        };
+        return {template: template};
     },
 
     componentDidMount: function () {
         addon.port.emit("sidebar:ready");
 
+        addon.port.on("template:changed", (template) => {
+            this.setState({template: template});
+        });
+
+        /*
         addon.port.on("template:activate", (id) => {this.activateTemplate(id)});
         addon.port.on("template:remove", (id) => {
             this.removeTemplate(id, () => {
@@ -413,8 +415,10 @@ var Sidebar = React.createClass({
                 addon.port.emit("sidebar:state-updated");
             })
         });
+        */
     },
 
+    /*
     addField: function(id, name, callback){
         this.confirmAll(id, () => {
             this.updateTemplate(id, tpl => {
@@ -505,13 +509,20 @@ var Sidebar = React.createClass({
         }
     },
 
+    */
+
     showEditorByIndex: function (id, index, callback) {
+        // TODO: send an event to show an editor for a field
+
+        /*
         this.confirmAll(id, () => {
             this.updateTemplateField(id, index, {editing: true}, callback);
         });
+        */
     },
 
     onFieldRemove: function (id, index) {
+        /*
         var removedField = null;
         this.updateTemplateFields(id, fields => {
             removedField = fields[index];
@@ -519,8 +530,10 @@ var Sidebar = React.createClass({
         }, () => {
             addon.port.emit("field:removed", removedField.name);
         });
+        */
     },
 
+    /*
     activateTemplate: function (id) {
         console.log('Sidebar.activateTemplate', id);
 
@@ -539,7 +552,7 @@ var Sidebar = React.createClass({
         var actId = this.state.activeTemplateId;
         return this.state.templates.filter(tpl => tpl.key == actId)[0];
     },
-
+    */
     onSaveAs: function () {
         SidebarActions.saveTemplateAs();
     },
@@ -560,7 +573,8 @@ var Sidebar = React.createClass({
     },
 
     render: function () {
-        var tpl = this.getActiveTemplate() || {key: null, fields: []};
+        var tpl= this.state.template;
+        //var tpl = this.getActiveTemplate() || {key: null, fields: []};
         if (!tpl){
             return <div><FortiaHeader/><NoTemplate delay={200} /></div>;
         }

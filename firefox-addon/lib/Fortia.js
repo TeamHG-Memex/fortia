@@ -39,10 +39,28 @@ function Session(tab) {
     });
 
     this.activate();
+
+    this.onDataChanged = (templateId, template) => {
+        if (templateId != this.tab.id) {
+            return;
+        }
+        console.log("Session.onDataChanged", this.tab.id);
+        this._sendToWorker("template:changed", template);
+    };
+    TemplateStore.on("changed", this.onDataChanged);
     TemplateActions.create(tab.id);
 }
 
 Session.prototype = {
+    _sendToWorker: function () {
+        if (!this.sidebarWorker){
+            console.error("Session " + this.tab.id + ": no sidebarWorker");
+            return false;
+        }
+        this.sidebarWorker.port.emit.apply(this, arguments);
+        return true;
+    },
+
     activate: function () {
         annotators.activateFor(this.tab);
         this.sidebar.show();
@@ -55,6 +73,7 @@ Session.prototype = {
     },
 
     destroy: function () {
+        TemplateStore.off("changed", this.onDataChanged);
         this.deactivate();
         this.sidebar.dispose();
         this.destroyed = true;

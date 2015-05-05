@@ -93,7 +93,6 @@ AnnotationsDisplay.prototype = {
             outline.trackElem(elem);
             if (id == this.tempStickyId){
                 var cb = () => {
-                    console.log("mouseleave");
                     this.tempStickyId = null;
                     outline.showCaption = "mouseover";
                     outline.off("mouseleave", cb);
