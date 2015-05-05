@@ -15,7 +15,7 @@ function AnnotationsDisplay(overlay, annotations) {
         fillColor: "#66D8FF",
         fillColorAlpha: 0.2,
     };
-    this.highlightMode = "mouseover";  // other allowed values: "always", "never"
+    this.highlightMode = "mouseover";  // other allowed values: "yes", "no"
 
     var doUpdateAll = (info) => {
         this.tempStickyId = info.id;
@@ -77,9 +77,9 @@ AnnotationsDisplay.prototype = {
                 var field = ann[attr];
                 return this.sticky[field];
             });
-            var mode = (id == this.tempStickyId)? "once" : this.highlightMode;
+            var mode = (id == this.tempStickyId) ? "yes" : this.highlightMode;
             if (isSticky) {
-                mode = "always";
+                mode = "yes";
             }
 
             var outline = new ElementOutline(
@@ -91,6 +91,16 @@ AnnotationsDisplay.prototype = {
                 //mode == "always"? '#F04124': "#43AC6A"
             );
             outline.trackElem(elem);
+            if (id == this.tempStickyId){
+                var cb = () => {
+                    console.log("mouseleave");
+                    this.tempStickyId = null;
+                    outline.showCaption = "mouseover";
+                    outline.off("mouseleave", cb);
+                    outline.updateNow();
+                };
+                outline.on("mouseleave", cb);
+            }
             return outline;
         }));
     },

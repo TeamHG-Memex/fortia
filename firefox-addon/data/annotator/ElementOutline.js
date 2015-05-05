@@ -40,13 +40,11 @@ function ElementOutline(canvas, options, caption="", showCaption="mouseover", te
         this.updateNow();
     };
     this.onMouseLeave = (ev) => {
-        if (this.showCaption != "mouseover" && this.showCaption != "once"){
+        this.emit("mouseleave");
+        if (this.showCaption != "mouseover"){
             return;
         }
         this.text.set("visible", false);
-        if (this.showCaption == "once"){
-            this.showCaption = "mouseover";
-        }
         this.updateNow();
     };
 
@@ -72,11 +70,12 @@ ElementOutline.prototype = {
             ry: this.opts.roundRadius,
         });
 
-        //console.log(this.showCaption);
-        if (this.showCaption == "never") {
+        if (this.showCaption == "no") {
             this.text.set("visible", false);
-        } else if (this.showCaption == "always" || this.showCaption == "once") {
+        } else if (this.showCaption == "yes") {
             this.text.set("visible", true);
+        } else if (this.showCaption != "mouseover") {
+            throw Error("invalid showCaption value: " + this.showCaption);
         }
     },
 
@@ -140,3 +139,6 @@ ElementOutline.prototype = {
         this.canvas.remove(this.group);
     }
 };
+
+/* enable .on, .off and .emit methods */
+Minivents(ElementOutline.prototype);
