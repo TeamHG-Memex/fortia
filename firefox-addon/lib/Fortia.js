@@ -1,10 +1,30 @@
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
 var { Hotkey } = require("sdk/hotkeys");
-//var dialogs = require("dialogs");
+
+var dialogs = require("dialogs");
 var { annotators } = require("./TabAnnotator.js");
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
+
+
+/* Ask user where to save the template and save it. */
+var nextSuggestedIndex = 0;
+var saveTemplateToFile = function (html, url) {
+    var filename = "scraper-" + nextSuggestedIndex + ".json";
+    var pageData = {
+        url: url,
+        headers: [],
+        body: html,
+        page_id: null,
+        encoding: 'utf-8'
+    };
+    var data = JSON.stringify({templates: [pageData]});
+    var ok = dialogs.save("Save the template", filename, data);
+    if (ok){
+        nextSuggestedIndex += 1;
+    }
+};
 
 
 var TemplateActions = {
@@ -21,16 +41,29 @@ Annotation session.
 */
 function Session(tab) {
     this.tab = tab;
-    this.id = tab.id;
     this.destroyed = false;
 
     this.sidebarWorker = null;
     this.sidebar = ui.Sidebar({
-        id: 'my-sidebar-' + this.id,
-        title: 'Fortia Sidebar ' + this.id,
+        id: 'my-sidebar-' + this.tab.id,
+        title: 'Fortia Sidebar ' + this.tab.id,
         url: "./sidebar/sidebar.html"
     });
-    this.sidebar.on('ready', (worker) => { this.sidebarWorker = worker });
+    this.sidebar.on('ready', (worker) => {
+        this.sidebarWorker = worker;
+        worker.port.on('SidebarAction', (templateId, action, data) => {
+            if (templateId != this.tab.id) {
+                console.error("invalid SidebarAction id", templateId, this.tab.id);
+                return;
+            }
+            if (action == 'saveTemplateAs'){
+                console.log("add-on script got SaveAs request");
+                annotators.getFor(this.tab).getTemplate((html) => {
+                    saveTemplateToFile(html, this.tab.url);
+                });
+            }
+        });
+    });
     this.sidebar.on('detach', () => { this.sidebarWorker = null });
 
     this.tab.on("close", () => {
@@ -64,7 +97,7 @@ Session.prototype = {
     activate: function () {
         annotators.activateFor(this.tab);
         this.sidebar.show();
-        console.log("session is activated", this.id);
+        console.log("session is activated", this.tab.id);
     },
 
     deactivate: function () {
@@ -78,7 +111,7 @@ Session.prototype = {
         this.sidebar.dispose();
         this.destroyed = true;
         this.tab.reload();
-        console.log("session is destroyed", this.id);
+        console.log("session is destroyed", this.tab.id);
     }
 };
 
@@ -149,25 +182,6 @@ Fortia.prototype = {
     setButtonHighlighted: function (active) {
         var icon = active ? "./icons/portia-64-active.png" : "./icons/portia-64.png";
         this.toggleButton.state("tab", {icon: icon});
-    },
-
-
-    /* Ask user where to save the template and save it. */
-    saveTemplateToFile: function (html) {
-        // FIXME: it should be per-template
-        var filename = "scraper-" + this.nextSuggestedIndex + ".json";
-        var pageData = {
-            url: tabs.activeTab.url,
-            headers: [],
-            body: html,
-            page_id: null,
-            encoding: 'utf-8'
-        };
-        var data = JSON.stringify({templates: [pageData]});
-        var ok = dialogs.save("Save the template", filename, data);
-        if (ok){
-            this.nextSuggestedIndex += 1;
-        }
     },
 
     // FIXME: template id is just tab id for now

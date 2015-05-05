@@ -32,6 +32,7 @@ function Annotator(){
         this.annotations.add(elem, name);
     });
 
+    /*
     self.port.on("renameField", (oldName, newName) => {
         this.annotations.rename(oldName, newName);
     });
@@ -47,6 +48,7 @@ function Annotator(){
     self.port.on("unhighlightField", (name) => {
         this.annotationsDisplay.removeSticky(name);
     });
+    */
 
     this.setTool(new FieldAnnotator(this.overlay, this.annotations));
 }

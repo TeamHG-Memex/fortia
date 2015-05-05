@@ -21,12 +21,21 @@ if (addon.mocked){
 const update = React.addons.update;
 
 /*
-Flux ActionCreator, with a twist: Dispatcher is not called directly
+Actions for interacting with the main addon code.
+
+This is a Flux ActionCreator, with a twist: Dispatcher is not called directly
 because it is not available in Sidebar context.
 */
-SidebarActions = {
+SidebarActions = function (templateId) {
+    this.templateId = templateId;
+    this.emit = (action, data) => {
+        addon.port.emit("SidebarAction", this.templateId, action, data);
+    }
+};
+
+SidebarActions.prototype = {
     saveTemplateAs: function () {
-        addon.port.emit("SidebarActions.saveTemplateAs");
+        this.emit("saveTemplateAs");
     }
 };
 
@@ -392,7 +401,12 @@ var Sidebar = React.createClass({
         return {template: template};
     },
 
+    componentWillUpdate: function (nextProps, nextState) {
+        this.actions = new SidebarActions(nextState.template.key);
+    },
+
     componentDidMount: function () {
+        this.actions = new SidebarActions(this.state.template.key);
         addon.port.emit("sidebar:ready");
 
         addon.port.on("template:changed", (template) => {
@@ -554,7 +568,7 @@ var Sidebar = React.createClass({
     },
     */
     onSaveAs: function () {
-        SidebarActions.saveTemplateAs();
+        this.actions.saveTemplateAs();
     },
 
     onCancelAnnotation: function (id) {
