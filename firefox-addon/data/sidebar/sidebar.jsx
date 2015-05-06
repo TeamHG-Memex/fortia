@@ -36,6 +36,14 @@ SidebarActions = function (templateId) {
 SidebarActions.prototype = {
     saveTemplateAs: function () {
         this.emit("saveTemplateAs");
+    },
+
+    notifyHovered: function (fieldName) {
+        this.emit("field:hovered", fieldName);
+    },
+
+    notifyUnhovered: function (fieldName) {
+        this.emit("field:unhovered", fieldName);
     }
 };
 
@@ -592,12 +600,12 @@ var Sidebar = React.createClass({
             return <div><FortiaHeader/><NoTemplate delay={200} /></div>;
         }
 
-        var onEnter = function (index, ev) {
-            addon.port.emit("field:hovered", tpl.fields[index].name, tpl.key);
+        var onEnter = (index, ev) => {
+            this.actions.notifyHovered(tpl.fields[index].name);
         };
 
-        var onLeave = function (index, ev) {
-            addon.port.emit("field:unhovered", tpl.fields[index].name, tpl.key);
+        var onLeave = (index, ev) => {
+            this.actions.notifyUnhovered(tpl.fields[index].name);
         };
 
         var onFieldSubmit = (index, name) => {

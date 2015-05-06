@@ -40,6 +40,7 @@ function Annotator(){
     self.port.on("removeField", (name) => {
         this.annotations.removeField(name);
     });
+    */
 
     self.port.on("highlightField", (name) => {
         this.annotationsDisplay.addSticky(name);
@@ -48,7 +49,6 @@ function Annotator(){
     self.port.on("unhighlightField", (name) => {
         this.annotationsDisplay.removeSticky(name);
     });
-    */
 
     this.setTool(new FieldAnnotator(this.overlay, this.annotations));
 }
