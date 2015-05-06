@@ -88,13 +88,13 @@ function FieldAnnotator(overlay, annotations) {
     this.overlay = overlay;
     this.selector = new ElementSelector(this.overlay);
 
-    this.selector.on("click", function(elem){
+    this.onClick = (elem) => {
         if (!annotations.exist(elem)){
             // An element which wasn't previously annotated - create
             // a new annotation for it:
             // 1. mapped attribute is 'content';
             // 2. generate a field name and ask user to change it.
-            console.log("FieldAnnotator create");
+            console.log("FieldAnnotator.onClick create");
             AnnotatorActions.createField(elem);
             // field is actually created in a fieldCreated event handler
         }
@@ -108,12 +108,16 @@ function FieldAnnotator(overlay, annotations) {
             });
             */
         }
-    });
+    };
+
+    this.selector.on("click", this.onClick);
 }
 
 
 FieldAnnotator.prototype = {
+
     destroy: function() {
+        this.selector.off("click", this.onClick);
         this.selector.destroy();
     }
 };
