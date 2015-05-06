@@ -100,11 +100,13 @@ function FieldAnnotator(overlay, annotations) {
         }
         else {
             // user clicked on the existing annotation - start editing it
+            /*
             console.log("FieldAnnotator edit");
             $(elem).blur();
             annotations.linkedFields(elem).forEach((name) => {
                 self.port.emit("field:edit", name);
             });
+            */
         }
     });
 }

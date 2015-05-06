@@ -56,11 +56,8 @@ function Session(tab) {
                 console.error("invalid SidebarAction id", templateId, this.tab.id);
                 return;
             }
-            if (action == 'saveTemplateAs'){
-                console.log("add-on script got SaveAs request");
-                annotators.getFor(this.tab).getTemplate((html) => {
-                    saveTemplateToFile(html, this.tab.url);
-                });
+            if (action == 'saveTemplateAs') {
+                this.saveTemplateAs();
             }
         });
     });
@@ -92,6 +89,13 @@ Session.prototype = {
         }
         this.sidebarWorker.port.emit.apply(this, arguments);
         return true;
+    },
+
+    saveTemplateAs: function () {
+        console.log("add-on script got SaveAs request");
+        annotators.getFor(this.tab).getTemplate((html) => {
+            saveTemplateToFile(html, this.tab.url);
+        });
     },
 
     activate: function () {

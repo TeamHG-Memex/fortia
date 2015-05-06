@@ -588,7 +588,6 @@ var Sidebar = React.createClass({
 
     render: function () {
         var tpl= this.state.template;
-        //var tpl = this.getActiveTemplate() || {key: null, fields: []};
         if (!tpl){
             return <div><FortiaHeader/><NoTemplate delay={200} /></div>;
         }
