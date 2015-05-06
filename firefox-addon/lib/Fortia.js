@@ -60,6 +60,7 @@ function Session(tab) {
         this.sidebarWorker = worker;
 
         TemplateActions.create(tab.id);
+        this._sendToWorker("template:changed", TemplateStore.get(tab.id));
 
         /* start listening for action requests from the sidebar */
         worker.port.on('SidebarAction', (templateId, action, data) => {

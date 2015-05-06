@@ -33,10 +33,14 @@ var TemplateStore = {
     },
 
     createTemplate: function (templateId) {
+        if (this.templates[templateId]){
+            return false;
+        }
         this.templates[templateId] = {
             key: templateId,
             fields: []
-        }
+        };
+        return true;
     },
 
     deleteTemplate: function (templateId) {
@@ -83,8 +87,9 @@ AppDispatcher.register(function(payload) {
             break;
         case "createTemplate":
             var id = payload.data.templateId;
-            TemplateStore.createTemplate(id);
-            TemplateStore.emitChanged(id);
+            if (TemplateStore.createTemplate(id)) {
+                TemplateStore.emitChanged(id);
+            }
             break;
         case "renameField":
             var id = payload.data.templateId;
