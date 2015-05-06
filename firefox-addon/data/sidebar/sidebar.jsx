@@ -205,7 +205,9 @@ var FieldEdit = React.createClass({
         return {ok: this.props.validate(this.props.name)};
     },
     componentDidMount: function () {
-        this.focus().select();
+        // FIXME: this is ugly, and this doesn't always work.
+        // Why isn't focus working immediately??
+        window.setTimeout(() => {this.focus().select()}, 100);
     },
     focus: function () {
         return $(this.refs.nameInput.getDOMNode()).focus();
