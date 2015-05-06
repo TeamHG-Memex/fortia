@@ -19,6 +19,10 @@ var TemplateStore = {
         on(this, event, callback);
     },
 
+    off: function (event, callback) {
+        off(this, event, callback);
+    },
+
     emitChanged: function (templateId) {
         this.emit("changed", templateId, this.get(templateId));
     },
