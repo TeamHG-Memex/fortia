@@ -215,17 +215,6 @@ Fortia.prototype = {
     setButtonHighlighted: function (active) {
         var icon = active ? "./icons/portia-64-active.png" : "./icons/portia-64.png";
         this.toggleButton.state("tab", {icon: icon});
-    },
-
-    // FIXME: template id is just tab id for now
-    addField: function (name) {
-        var id = tabs.activeTab.id;
-        this.sidebarWorker.port.emit("field:add", id, name);
-    },
-
-    editField: function (name) {
-        var id = tabs.activeTab.id;
-        this.sidebarWorker.port.emit("field:edit", id, name);
     }
 };
 

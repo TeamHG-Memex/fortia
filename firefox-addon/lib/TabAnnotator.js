@@ -45,7 +45,7 @@ function TabAnnotator(tab){
     });
 
     this._injectScripts();
-    
+
     TemplateStore.on("fieldCreated", this.onFieldCreated.bind(this));
     TemplateStore.on("fieldRenamed", this.onFieldRenamed.bind(this));
 }
@@ -60,13 +60,12 @@ TabAnnotator.prototype = {
     },
 
     update: function(){
-        console.log("TabAnnotator.update", this.worker.tab.id);
         if (this.active) {
-            console.log("TabAnnotator.activate", this.worker.tab.id);
+            console.log("TabAnnotator.update: activate", this.worker.tab.id);
             this.worker.port.emit("activate");
         }
         else {
-            console.log("TabAnnotator.deactivate", this.worker.tab.id);
+            console.log("TabAnnotator.update: deactivate", this.worker.tab.id);
             this.worker.port.emit("deactivate");
         }
     },

@@ -5,6 +5,7 @@ and provides a fabric.js wrapper.
 Optionally, it can disable all web page interactions.
 */
 function CanvasOverlay(id='scrapely-overlay') {
+    this.forcedRefreshInterval = 5000;
     this.interactionsBlocked = false;
     this._createCanvas(id);
     this._enableAutoResize();
@@ -49,7 +50,7 @@ CanvasOverlay.prototype = {
         };
 
         $(window).on('resize', this._resizeToWindow);
-        this._resizeTimer = setInterval(this._resizeToWindow, 2000);
+        this._resizeTimer = setInterval(this._resizeToWindow, this.forcedRefreshInterval);
         this._resizeToWindow();
     },
 
