@@ -62,6 +62,7 @@ AnnotationsDisplay.prototype = {
 
     /* Update all elements based on current annotations */
     updateAll: function () {
+        //console.log("AnnotationsDisplay.updateAll");
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
             var id = this.annotations.getId(elem);

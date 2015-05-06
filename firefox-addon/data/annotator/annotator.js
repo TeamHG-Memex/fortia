@@ -77,8 +77,13 @@ Annotator.prototype = {
     },
 
     /* lock/unlock interactions */
-    lock: function () {this.overlay.blockInteractions();},
-    unlock: function () {this.overlay.unblockInteractions();},
+    lock: function () {
+        this.overlay.blockInteractions();
+    },
+    unlock: function () {
+        this.overlay.unblockInteractions();
+        this.annotationsDisplay.updateAll();
+    }
 };
 
 
