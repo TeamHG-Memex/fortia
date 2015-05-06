@@ -25,6 +25,7 @@ function TabAnnotator(tab){
         "./annotator/annotator.js"
     ];
     this.active = false;
+    this.scriptsInjected = false;
 
     tab.on("ready", (tab) => {
         if (tab.url.startsWith("about:")){
@@ -44,6 +45,9 @@ function TabAnnotator(tab){
     });
 
     this._injectScripts();
+    
+    TemplateStore.on("fieldCreated", this.onFieldCreated.bind(this));
+    TemplateStore.on("fieldRenamed", this.onFieldRenamed.bind(this));
 }
 
 TabAnnotator.prototype = {
@@ -92,16 +96,6 @@ TabAnnotator.prototype = {
         this.worker.port.emit("getTemplate");
     },
 
-    ///* Field name changed - update the template with the new field name */
-    //renameField: function(oldName, newName){
-    //    this.worker.port.emit("renameField", oldName, newName);
-    //},
-    //
-    ///* Field is deleted - remove all annotations for this field from the template */
-    //removeField: function(name){
-    //    this.worker.port.emit("removeField", name);
-    //},
-
     /* Highlight all annotations with this field name */
     highlightField: function (name) {
         this.worker.port.emit("highlightField", name);
@@ -114,6 +108,10 @@ TabAnnotator.prototype = {
 
     _injectScripts: function(){
         var tab = this.tab;
+        if (this.scriptsInjected){
+            console.log("TabAnnotator._injectScripts - already injected", tab.id);
+            return;
+        }
         console.log("TabAnnotator._injectScripts to ", tab.id);
 
         this.worker = tab.attach({contentScriptFile: this.scripts});
@@ -125,8 +123,10 @@ TabAnnotator.prototype = {
                 data: data
             });
         });
-        TemplateStore.on("fieldCreated", this.onFieldCreated.bind(this));
-        TemplateStore.on("fieldRenamed", this.onFieldRenamed.bind(this));
+        this.worker.on("detach", () => {
+            console.log("worker is detached", tab.id);
+            this.scriptsInjected = false;
+        });
 
         //this.worker.port.on("field:added", (info) => {
         //    console.log("field:added", info);
@@ -140,6 +140,8 @@ TabAnnotator.prototype = {
         //    // FIXME: sidebar should listen for events
         //    this.sidebar.editField(name);
         //});
+
+        this.scriptsInjected = true;
     },
 
     onFieldCreated: function (templateId, data) {

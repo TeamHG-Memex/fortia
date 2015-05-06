@@ -58,6 +58,10 @@ function Session(tab) {
     });
     this.sidebar.on('ready', (worker) => {
         this.sidebarWorker = worker;
+
+        TemplateActions.create(tab.id);
+
+        /* start listening for action requests from the sidebar */
         worker.port.on('SidebarAction', (templateId, action, data) => {
             if (templateId != this.tab.id) {
                 console.error("invalid SidebarAction id", templateId, this.tab.id);
@@ -90,6 +94,7 @@ function Session(tab) {
 
     this.activate();
 
+    /* start listening for data change events */
     this.onDataChanged = (templateId, template) => {
         if (templateId != this.tab.id) {
             return;
@@ -98,7 +103,6 @@ function Session(tab) {
         this._sendToWorker("template:changed", template);
     };
     TemplateStore.on("changed", this.onDataChanged);
-    TemplateActions.create(tab.id);
 }
 
 Session.prototype = {
