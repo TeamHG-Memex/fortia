@@ -44,6 +44,13 @@ SidebarActions.prototype = {
 
     notifyUnhovered: function (fieldName) {
         this.emit("field:unhovered", fieldName);
+    },
+
+    renameField: function (oldName, newName) {
+        if (oldName == newName){
+            return;
+        }
+        this.emit("renameField", {oldName: oldName, newName: newName});
     }
 };
 
@@ -614,8 +621,9 @@ var Sidebar = React.createClass({
                 this.updateTemplateField(tpl.key, index, changes);
             });
         };
+
         var onFieldChange = (index, name) => {
-            this.updateTemplateField(tpl.key, index, {name: name});
+            this.actions.renameField(tpl.fields[index].name, name);
         };
 
         var showEditorByIndex = this.showEditorByIndex.bind(this, tpl.key);

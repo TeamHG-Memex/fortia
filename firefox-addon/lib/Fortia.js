@@ -33,6 +33,13 @@ var TemplateActions = {
             action: "createTemplate",
             data: {templateId: templateId}
         });
+    },
+
+    renameField: function (templateId, oldName, newName) {
+        AppDispatcher.dispatch({
+            action: "renameField",
+            data: {templateId: templateId, oldName: oldName, newName: newName}
+        });
     }
 };
 
@@ -59,6 +66,9 @@ function Session(tab) {
             switch (action){
                 case "saveTemplateAs":
                     this.saveTemplateAs();
+                    break;
+                case "renameField":
+                    TemplateActions.renameField(templateId, data.oldName, data.newName);
                     break;
                 case "field:hovered":
                     this.annotator().highlightField(data);

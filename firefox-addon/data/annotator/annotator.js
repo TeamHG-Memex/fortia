@@ -32,11 +32,11 @@ function Annotator(){
         this.annotations.add(elem, name);
     });
 
-    /*
-    self.port.on("renameField", (oldName, newName) => {
+    self.port.on("fieldRenamed", (oldName, newName) => {
         this.annotations.rename(oldName, newName);
     });
 
+    /*
     self.port.on("removeField", (name) => {
         this.annotations.removeField(name);
     });

@@ -92,15 +92,15 @@ TabAnnotator.prototype = {
         this.worker.port.emit("getTemplate");
     },
 
-    /* Field name changed - update the template with the new field name */
-    renameField: function(oldName, newName){
-        this.worker.port.emit("renameField", oldName, newName);
-    },
-
-    /* Field is deleted - remove all annotations for this field from the template */
-    removeField: function(name){
-        this.worker.port.emit("removeField", name);
-    },
+    ///* Field name changed - update the template with the new field name */
+    //renameField: function(oldName, newName){
+    //    this.worker.port.emit("renameField", oldName, newName);
+    //},
+    //
+    ///* Field is deleted - remove all annotations for this field from the template */
+    //removeField: function(name){
+    //    this.worker.port.emit("removeField", name);
+    //},
 
     /* Highlight all annotations with this field name */
     highlightField: function (name) {
@@ -126,6 +126,7 @@ TabAnnotator.prototype = {
             });
         });
         TemplateStore.on("fieldCreated", this.onFieldCreated.bind(this));
+        TemplateStore.on("fieldRenamed", this.onFieldRenamed.bind(this));
 
         //this.worker.port.on("field:added", (info) => {
         //    console.log("field:added", info);
@@ -146,6 +147,13 @@ TabAnnotator.prototype = {
             return;
         }
         this.worker.port.emit("fieldCreated", data.selector, data.name);
+    },
+
+    onFieldRenamed: function (templateId, data) {
+        if (templateId != this.tab.id){
+            return;
+        }
+        this.worker.port.emit("fieldRenamed", data.oldName, data.newName);
     }
 };
 

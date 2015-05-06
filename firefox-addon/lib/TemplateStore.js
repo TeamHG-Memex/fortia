@@ -53,6 +53,14 @@ var TemplateStore = {
         return newField;
     },
 
+    renameField: function (templateId, oldName, newName) {
+        this.get(templateId).fields.forEach((field) => {
+            if (field.name == oldName){
+                field.name = newName;
+            }
+        });
+    },
+
     _suggestFieldName: function (templateId) {
         var nextId = this.nextId[templateId] || 1;
         this.nextId[templateId] = nextId + 1;
@@ -63,19 +71,32 @@ var TemplateStore = {
 
 AppDispatcher.register(function(payload) {
     console.log("AppDispatcher payload", payload);
-
-    if (payload.action == "createField") {
-        var id = payload.data.tabId;
-        var newField = TemplateStore.createField(id);
-        TemplateStore.emitChanged(id);
-        TemplateStore.emit("fieldCreated", id, {
-            field: newField,
-            selector: payload.data.selector
-        });
-    } else if (payload.action == "createTemplate") {
-        var id = payload.data.templateId;
-        TemplateStore.createTemplate(id);
-        TemplateStore.emitChanged(id);
+    switch (payload.action) {
+        case "createField":
+            var id = payload.data.tabId;
+            var newField = TemplateStore.createField(id);
+            TemplateStore.emitChanged(id);
+            TemplateStore.emit("fieldCreated", id, {
+                field: newField,
+                selector: payload.data.selector
+            });
+            break;
+        case "createTemplate":
+            var id = payload.data.templateId;
+            TemplateStore.createTemplate(id);
+            TemplateStore.emitChanged(id);
+            break;
+        case "renameField":
+            var id = payload.data.templateId;
+            var oldName = payload.data.oldName;
+            var newName = payload.data.newName;
+            TemplateStore.renameField(id, oldName, newName);
+            TemplateStore.emitChanged(id);
+            TemplateStore.emit("fieldRenamed", id, {
+                oldName: oldName,
+                newName: newName,
+            });
+            break;
     }
 });
 
