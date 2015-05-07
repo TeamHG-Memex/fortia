@@ -75,29 +75,30 @@ var TemplateStore = {
 
 AppDispatcher.register(function(payload) {
     console.log("AppDispatcher payload", payload);
+    var data = payload.data;
     switch (payload.action) {
         case "createField":
-            var id = payload.data.tabId;
-            var newField = TemplateStore.createField(id);
-            TemplateStore.emitChanged(id);
-            TemplateStore.emit("fieldCreated", id, {
+            var templateId = data.templateId;
+            var newField = TemplateStore.createField(templateId);
+            TemplateStore.emitChanged(templateId);
+            TemplateStore.emit("fieldCreated", templateId, {
                 field: newField,
-                selector: payload.data.selector
+                selector: data.selector
             });
             break;
         case "createTemplate":
-            var id = payload.data.templateId;
-            if (TemplateStore.createTemplate(id)) {
-                TemplateStore.emitChanged(id);
+            var templateId = data.templateId;
+            if (TemplateStore.createTemplate(templateId)) {
+                TemplateStore.emitChanged(templateId);
             }
             break;
         case "renameField":
-            var id = payload.data.templateId;
-            var oldName = payload.data.oldName;
-            var newName = payload.data.newName;
-            TemplateStore.renameField(id, oldName, newName);
-            TemplateStore.emitChanged(id);
-            TemplateStore.emit("fieldRenamed", id, {
+            var templateId = data.templateId;
+            var oldName = data.oldName;
+            var newName = data.newName;
+            TemplateStore.renameField(templateId, oldName, newName);
+            TemplateStore.emitChanged(templateId);
+            TemplateStore.emit("fieldRenamed", templateId, {
                 oldName: oldName,
                 newName: newName,
             });

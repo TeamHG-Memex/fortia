@@ -115,7 +115,7 @@ TabAnnotator.prototype = {
 
         this.worker = tab.attach({contentScriptFile: this.scripts});
         this.worker.port.on("AnotatorAction", function (action, data) {
-            data.tabId = tab.id;
+            data.templateId = tab.id;
             console.log("AnotatorAction", action, data);
             AppDispatcher.dispatch({
                 action: action,
