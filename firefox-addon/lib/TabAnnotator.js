@@ -45,9 +45,8 @@ function TabAnnotator(tab){
     });
 
     this._injectScripts();
-
-    TemplateStore.on("fieldCreated", this.onFieldCreated.bind(this));
-    TemplateStore.on("fieldRenamed", this.onFieldRenamed.bind(this));
+    this._forwardEventToWorker("fieldCreated");
+    this._forwardEventToWorker("fieldRenamed");
 }
 
 TabAnnotator.prototype = {
@@ -143,18 +142,14 @@ TabAnnotator.prototype = {
         this.scriptsInjected = true;
     },
 
-    onFieldCreated: function (templateId, data) {
-        if (templateId != this.tab.id){
-            return;
-        }
-        this.worker.port.emit("fieldCreated", data);
-    },
-
-    onFieldRenamed: function (templateId, data) {
-        if (templateId != this.tab.id){
-            return;
-        }
-        this.worker.port.emit("fieldRenamed", data.oldName, data.newName);
+    _forwardEventToWorker: function (event) {
+        var cb = function (templateId, data) {
+            if (templateId != this.tab.id){
+                return;
+            }
+            this.worker.port.emit(event, data);
+        };
+        TemplateStore.on(event, cb.bind(this));
     }
 };
 

@@ -32,8 +32,8 @@ function Annotator(){
         this.annotations.add(elem, data.field.name, data.field.id);
     });
 
-    self.port.on("fieldRenamed", (oldName, newName) => {
-        this.annotations.rename(oldName, newName);
+    self.port.on("fieldRenamed", (data) => {
+        this.annotations.rename(data.fieldId, data.newName);
     });
 
     /*

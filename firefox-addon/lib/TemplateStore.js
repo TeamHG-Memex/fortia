@@ -66,12 +66,15 @@ var TemplateStore = {
         return newField;
     },
 
-    renameField: function (templateId, oldName, newName) {
+    renameField: function (templateId, fieldId, newName) {
+        var changes = 0;
         this.get(templateId).fields.forEach((field) => {
-            if (field.name == oldName){
+            if (field.id == fieldId && field.name != newName) {
                 field.name = newName;
+                changes += 1;
             }
         });
+        return changes;
     },
 
     _suggestFieldName: function (templateId) {
@@ -85,9 +88,12 @@ var TemplateStore = {
 AppDispatcher.register(function(payload) {
     console.log("AppDispatcher payload", payload);
     var data = payload.data;
+    if (!data) {
+        return;
+    }
+    var templateId = data.templateId;
     switch (payload.action) {
         case "createField":
-            var templateId = data.templateId;
             var newField = TemplateStore.createField(templateId);
             TemplateStore.emitChanged(templateId);
             TemplateStore.emit("fieldCreated", templateId, {
@@ -96,21 +102,18 @@ AppDispatcher.register(function(payload) {
             });
             break;
         case "createTemplate":
-            var templateId = data.templateId;
             if (TemplateStore.createTemplate(templateId)) {
                 TemplateStore.emitChanged(templateId);
             }
             break;
         case "renameField":
-            var templateId = data.templateId;
-            var oldName = data.oldName;
-            var newName = data.newName;
-            TemplateStore.renameField(templateId, oldName, newName);
-            TemplateStore.emitChanged(templateId);
-            TemplateStore.emit("fieldRenamed", templateId, {
-                oldName: oldName,
-                newName: newName,
-            });
+            if (TemplateStore.renameField(templateId, data.fieldId, data.newName)) {
+                TemplateStore.emitChanged(templateId);
+                TemplateStore.emit("fieldRenamed", templateId, {
+                    fieldId: data.fieldId,
+                    newName: data.newName
+                });
+            }
             break;
     }
 });
@@ -120,5 +123,10 @@ TemplateStore.on("changed", function (templateId, template) {
     console.log("TemplateStore changed", templateId, template);
 });
 
+/*
+TemplateStore.on("fieldRenamed", function (templateId, data) {
+    console.log("TemplateStore fieldRenamed", templateId, data);
+});
+*/
 
 exports.TemplateStore = TemplateStore;

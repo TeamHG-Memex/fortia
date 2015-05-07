@@ -35,10 +35,10 @@ var TemplateActions = {
         });
     },
 
-    renameField: function (templateId, oldName, newName) {
+    renameField: function (templateId, fieldId, newName) {
         AppDispatcher.dispatch({
             action: "renameField",
-            data: {templateId: templateId, oldName: oldName, newName: newName}
+            data: {templateId: templateId, fieldId: fieldId, newName: newName}
         });
     }
 };
@@ -73,7 +73,7 @@ function Session(tab) {
                     this.saveTemplateAs();
                     break;
                 case "renameField":
-                    TemplateActions.renameField(templateId, data.oldName, data.newName);
+                    TemplateActions.renameField(templateId, data.fieldId, data.newName);
                     break;
                 case "field:hovered":
                     this.annotator().highlightField(data);

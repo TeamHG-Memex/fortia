@@ -88,25 +88,21 @@ DomAnnotations.prototype = {
         this.setId(elem, fieldId);
         var data = {annotations: {[attr]: fieldName}};
         this.setData(elem, data).blur();
-        this.emit("added", {id: fieldId, data: data});
+        this.emit("added", {fieldId: fieldId, data: data});
     },
 
     /* Rename a field */
-    rename: function (oldName, newName) {
-        this.allElements().each((idx, elem) => {
-            var data = this.getData(elem);
-            var id = this.getId(elem);
-            var annotations = data.annotations;
-            var renames = [];
-            for (let attr of Object.keys(annotations)) {
-                if (annotations[attr] == oldName){
-                    annotations[attr] = newName;
-                    renames.push({id: id, oldName: oldName, name: newName, attr: attr});
-                }
-            }
-            this.setData(elem, data);
-            renames.forEach((info) => this.emit("renamed", info));
-        });
+    rename: function (fieldId, newName) {
+        // FIXME: id should be per-attribute, not per-element.
+        // currently multiple attributes are not supported.
+        var elem = this.byId(fieldId);
+        var data = this.getData(elem);
+        var annotations = data.annotations;
+        for (let attr of Object.keys(annotations)) {
+            annotations[attr] = newName;
+        }
+        this.setData(elem, data);
+        this.emit("renamed", {fieldId: fieldId, newName: newName});
     },
 
     /* Remove all annotations for the field */
