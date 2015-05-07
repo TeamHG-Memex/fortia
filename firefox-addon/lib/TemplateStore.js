@@ -4,6 +4,11 @@ Flux Store for annotation templates.
 const { on, once, off, emit } = require('sdk/event/core');
 const { AppDispatcher } = require("./dispatcher.js");
 
+/* Return a short random string */
+function getRandomString() {
+    return Math.random().toString(36).substr(2);
+}
+
 
 var TemplateStore = {
     templates: {},  // id => template
@@ -48,11 +53,15 @@ var TemplateStore = {
         delete this.nextId[templateId];
     },
 
-    createField: function (templateId, name) {
-        if (!name) {
-            name = this._suggestFieldName(templateId);
-        }
-        var newField = {name: name, prevName: name, editing: true};
+    createField: function (templateId, fieldId, name) {
+        fieldId = fieldId || getRandomString();
+        name = name || this._suggestFieldName(templateId);
+        var newField = {
+            name: name,
+            prevName: name,
+            editing: true,
+            id: fieldId
+        };
         this.get(templateId).fields.push(newField);
         return newField;
     },

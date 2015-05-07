@@ -29,7 +29,6 @@ they are also not handled here yet:
 */
 function DomAnnotations(){
     this.loadFromDOM();
-    this.nextFieldId = 1;
 }
 
 DomAnnotations.prototype = {
@@ -84,16 +83,12 @@ DomAnnotations.prototype = {
     },
 
     /* Add a new annotation. */
-    add: function (elem, fieldName, attr="content") {
-        if (!fieldName) {
-            fieldName = "field" + this.nextFieldId;
-            this.nextFieldId += 1;
-        }
-        var id = getRandomString();
-        this.setId(elem, id);
+    add: function (elem, fieldName, fieldId, attr) {
+        attr = attr || "content";
+        this.setId(elem, fieldId);
         var data = {annotations: {[attr]: fieldName}};
         this.setData(elem, data).blur();
-        this.emit("added", {id: id, data: data});
+        this.emit("added", {id: fieldId, data: data});
     },
 
     /* Rename a field */

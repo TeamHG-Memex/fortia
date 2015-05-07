@@ -1,11 +1,5 @@
 
 
-/* Return a short random string */
-function getRandomString() {
-    return Math.random().toString(36).substr(2);
-}
-
-
 /* Return an unique CSS selector for the element */
 function getUniquePath($elem) {
     var path = '';

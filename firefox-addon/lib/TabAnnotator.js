@@ -147,7 +147,7 @@ TabAnnotator.prototype = {
         if (templateId != this.tab.id){
             return;
         }
-        this.worker.port.emit("fieldCreated", data.selector, data.name);
+        this.worker.port.emit("fieldCreated", data);
     },
 
     onFieldRenamed: function (templateId, data) {

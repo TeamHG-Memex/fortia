@@ -27,9 +27,9 @@ function Annotator(){
     this.annotations = new DomAnnotations();
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
-    self.port.on("fieldCreated", (selector, name) => {
-        var elem = $(selector);
-        this.annotations.add(elem, name);
+    self.port.on("fieldCreated", (data) => {
+        var elem = $(data.selector);
+        this.annotations.add(elem, data.field.name, data.field.id);
     });
 
     self.port.on("fieldRenamed", (oldName, newName) => {

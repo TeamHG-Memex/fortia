@@ -11,8 +11,8 @@ if (addon.mocked){
     template = {
         key: "-3-2",
         fields: [
-            {name: "title", prevName: "title", editing: false},
-            {name: "score", prevName: "score", editing: false},
+            {name: "title", prevName: "title", editing: false, id: "asdfhg34"},
+            {name: "score", prevName: "score", editing: false, id: "876hlkjb"},
         ]
     };
 }
