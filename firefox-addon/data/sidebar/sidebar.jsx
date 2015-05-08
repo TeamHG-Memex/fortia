@@ -39,15 +39,23 @@ SidebarActions.prototype = {
     },
 
     notifyHovered: function (fieldId) {
-        this.emit("field:hovered", fieldId);
+        this.emit("field:hovered", {fieldId: fieldId});
     },
 
     notifyUnhovered: function (fieldId) {
-        this.emit("field:unhovered", fieldId);
+        this.emit("field:unhovered", {fieldId: fieldId});
     },
 
     renameField: function (fieldId, newName) {
         this.emit("renameField", {fieldId: fieldId, newName: newName});
+    },
+
+    confirmFields: function (fieldIds) {
+        this.emit("confirmFields", {fieldIds: fieldIds});
+    },
+
+    startEditing: function (fieldId, closeIds) {
+        this.emit("startEditing", {fieldId: fieldId, closeIds: closeIds});
     }
 };
 
@@ -539,17 +547,27 @@ var Sidebar = React.createClass({
 
     */
 
-    showEditorByIndex: function (id, index, callback) {
-        // TODO: send an event to show an editor for a field
-
-        /*
-        this.confirmAll(id, () => {
-            this.updateTemplateField(id, index, {editing: true}, callback);
-        });
-        */
+    _fieldsToClose: function () {
+        return this.state.template.fields.filter((field, i) => {
+            return field.editing && this.refs.editor.fieldOk(i);
+        })
     },
 
-    onFieldRemove: function (id, index) {
+    confirmField: function (index) {
+        var field = this.state.template.fields[index];
+        if (field.editing && this.refs.editor.fieldOk(index)){
+            this.actions.confirmFields([field.id]);
+        }
+    },
+
+    showEditorByIndex: function (index) {
+        var fieldId = this.state.template.fields[index].id;
+        var closeIds = this._fieldsToClose().map(field => field.id);
+        console.log("showEditorByIndex", index, fieldId, closeIds);
+        this.actions.startEditing(fieldId, closeIds);
+    },
+
+    onFieldRemove: function (index) {
         /*
         var removedField = null;
         this.updateTemplateFields(id, fields => {
@@ -585,7 +603,7 @@ var Sidebar = React.createClass({
         this.actions.saveTemplateAs();
     },
 
-    onCancelAnnotation: function (id) {
+    onCancelAnnotation: function () {
         alert("Sorry, this feature is not implemented yet.");
         /*
         if (confirm("Are you sure? The current annotation will be discarded.")) {
@@ -615,19 +633,12 @@ var Sidebar = React.createClass({
         };
 
         var onFieldSubmit = (index, name) => {
-            this.confirmAll(tpl.key, () => {
-                var changes = {name: name, prevName: name, editing: false};
-                this.updateTemplateField(tpl.key, index, changes);
-            });
+            this.confirmField(index);
         };
 
         var onFieldChange = (index, name) => {
             this.actions.renameField(tpl.fields[index].id, name);
         };
-
-        var showEditorByIndex = this.showEditorByIndex.bind(this, tpl.key);
-        var onFieldRemove = this.onFieldRemove.bind(this, tpl.key);
-        var onCancelAnnotation = this.onCancelAnnotation.bind(this, tpl.key);
 
         return (
             <div>
@@ -637,9 +648,9 @@ var Sidebar = React.createClass({
                                 onFieldMouseLeave={onLeave}
                                 onFieldSubmit={onFieldSubmit}
                                 onFieldChange={onFieldChange}
-                                onFieldRemove={onFieldRemove}
-                                showEditorByIndex={showEditorByIndex}
-                                onCancelAnnotation={onCancelAnnotation}
+                                onFieldRemove={this.onFieldRemove}
+                                showEditorByIndex={this.showEditorByIndex}
+                                onCancelAnnotation={this.onCancelAnnotation}
                                 onSaveAs={this.onSaveAs}
                                 onHelp={this.onHelp}
                                 useFinish={false}

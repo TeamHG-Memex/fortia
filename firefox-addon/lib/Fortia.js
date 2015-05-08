@@ -27,21 +27,20 @@ var saveTemplateToFile = function (html, url) {
 };
 
 
-var TemplateActions = {
-    create: function (templateId) {
-        AppDispatcher.dispatch({
-            action: "createTemplate",
-            data: {templateId: templateId}
-        });
-    },
+/* Action Creator */
+function TemplateActions(templateId) {
+    this.templateId = templateId;
+}
 
-    renameField: function (templateId, fieldId, newName) {
-        AppDispatcher.dispatch({
-            action: "renameField",
-            data: {templateId: templateId, fieldId: fieldId, newName: newName}
-        });
+TemplateActions.prototype = {
+    emit: function (action, data) {
+        data = data || {};
+        data.templateId = this.templateId;
+        console.log("TemplateActions", action, data);
+        AppDispatcher.dispatch({action: action, data: data});
     }
 };
+
 
 /*
 Annotation session.
@@ -49,6 +48,7 @@ Annotation session.
 function Session(tab) {
     this.tab = tab;
     this.destroyed = false;
+    this.actions = new TemplateActions(this.tab.id);
 
     this.sidebarWorker = null;
     this.sidebar = ui.Sidebar({
@@ -59,7 +59,7 @@ function Session(tab) {
     this.sidebar.on('ready', (worker) => {
         this.sidebarWorker = worker;
 
-        TemplateActions.create(tab.id);
+        this.actions.emit("createTemplate");
         this._sendToWorker("template:changed", TemplateStore.get(tab.id));
 
         /* start listening for action requests from the sidebar */
@@ -69,11 +69,13 @@ function Session(tab) {
                 return;
             }
             switch (action){
+                case "renameField":
+                case "startEditing":
+                case "confirmFields":
+                    this.actions.emit(action, data);
+                    break;
                 case "saveTemplateAs":
                     this.saveTemplateAs();
-                    break;
-                case "renameField":
-                    TemplateActions.renameField(templateId, data.fieldId, data.newName);
                     break;
                 case "field:hovered":
                     this.annotator().highlightField(data);

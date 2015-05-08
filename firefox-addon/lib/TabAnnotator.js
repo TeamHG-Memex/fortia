@@ -126,13 +126,6 @@ TabAnnotator.prototype = {
             this.scriptsInjected = false;
         });
 
-        //this.worker.port.on("field:added", (info) => {
-        //    console.log("field:added", info);
-        //    var field = info["data"]["annotations"]["content"];
-        //    // FIXME: sidebar should listen for events
-        //    this.sidebar.addField(field);
-        //});
-        //
         //this.worker.port.on("field:edit", (name) => {
         //    console.log("field:edit", name);
         //    // FIXME: sidebar should listen for events

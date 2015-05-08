@@ -4,6 +4,7 @@ Flux Store for annotation templates.
 const { on, once, off, emit } = require('sdk/event/core');
 const { AppDispatcher } = require("./dispatcher.js");
 
+
 /* Return a short random string */
 function getRandomString() {
     return Math.random().toString(36).substr(2);
@@ -68,13 +69,34 @@ var TemplateStore = {
 
     renameField: function (templateId, fieldId, newName) {
         var changes = 0;
-        this.get(templateId).fields.forEach((field) => {
+        this.get(templateId).fields.forEach(field => {
             if (field.id == fieldId && field.name != newName) {
                 field.name = newName;
                 changes += 1;
             }
         });
         return changes;
+    },
+
+    confirmFields: function (templateId, fieldIds) {
+        var ids = new Set(fieldIds);
+        this.get(templateId).fields.forEach(field => {
+            if (ids.has(field.id)) {
+                field.prevName = field.name;
+                field.editing = false;
+            }
+        });
+    },
+
+    startEditing: function (templateId, fieldId, closeIds) {
+        closeIds = closeIds || [];
+        this.confirmFields(templateId, closeIds);
+        this.get(templateId).fields.forEach(field => {
+            if (field.id == fieldId){
+                field.prevName = field.name;
+                field.editing = true;
+            }
+        })
     },
 
     _suggestFieldName: function (templateId) {
@@ -114,6 +136,14 @@ AppDispatcher.register(function(payload) {
                     newName: data.newName
                 });
             }
+            break;
+        case "confirmFields":
+            TemplateStore.confirmFields(templateId, data.fieldIds);
+            TemplateStore.emitChanged(templateId);
+            break;
+        case "startEditing":
+            TemplateStore.startEditing(templateId, data.fieldId, data.closeIds);
+            TemplateStore.emitChanged(templateId);
             break;
     }
 });
