@@ -321,12 +321,12 @@ var TemplateEditor = React.createClass({
         var items = this.props.fields.map((field, i) => {
             var ref = "field" + i;
             var validate = this.valueAllowed.bind(this, i);
-            var onRemove = this.props.onFieldRemove.bind(this, i);
-            var onEnter = this.props.onFieldMouseEnter.bind(this, i);
-            var onLeave = this.props.onFieldMouseLeave.bind(this, i);
-            var showEditor = this.props.showEditorByIndex.bind(this, i);
-            var onSubmit = this.props.onFieldSubmit.bind(this, i);
-            var onChange = this.props.onFieldChange.bind(this, i);
+            var onRemove = this.props.onFieldRemove.bind(null, i);
+            var onEnter = this.props.onFieldMouseEnter.bind(null, i);
+            var onLeave = this.props.onFieldMouseLeave.bind(null, i);
+            var showEditor = this.props.showEditorByIndex.bind(null, i);
+            var onSubmit = this.props.onFieldSubmit.bind(null, i);
+            var onChange = this.props.onFieldChange.bind(null, i);
 
             if (!field.editing) {
                 return <FieldDisplay name={field.name} ref={ref}
