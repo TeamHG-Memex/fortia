@@ -94,6 +94,7 @@ var BootstrapListGroup = React.createClass({
         var items = this.props.children.map(function (item) {
             return (
                 <li className="list-group-item"
+                    key={item.key}
                     onMouseEnter={item.props.onMouseEnter}
                     onMouseLeave={item.props.onMouseLeave}>
                     {item}
@@ -337,13 +338,15 @@ var TemplateEditor = React.createClass({
             var onChange = this.props.onFieldChange.bind(null, i);
 
             if (!field.editing) {
-                return <FieldDisplay name={field.name} ref={ref}
+                return <FieldDisplay name={field.name} ref={ref} key={field.id}
                                   onClick={showEditor}
                                   onMouseEnter={onEnter}
                                   onMouseLeave={onLeave} />;
             }
             else {
-                return <FieldEdit name={field.name} prevName={field.prevName} ref={ref}
+                return <FieldEdit name={field.name} prevName={field.prevName}
+                                  ref={ref}
+                                  key={field.id}
                                   validate={validate}
                                   onSubmit={onSubmit}
                                   onChange={onChange}
