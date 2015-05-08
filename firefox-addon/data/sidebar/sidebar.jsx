@@ -38,12 +38,12 @@ SidebarActions.prototype = {
         this.emit("saveTemplateAs");
     },
 
-    notifyHovered: function (fieldName) {
-        this.emit("field:hovered", fieldName);
+    notifyHovered: function (fieldId) {
+        this.emit("field:hovered", fieldId);
     },
 
-    notifyUnhovered: function (fieldName) {
-        this.emit("field:unhovered", fieldName);
+    notifyUnhovered: function (fieldId) {
+        this.emit("field:unhovered", fieldId);
     },
 
     renameField: function (fieldId, newName) {
@@ -607,11 +607,11 @@ var Sidebar = React.createClass({
         }
 
         var onEnter = (index, ev) => {
-            this.actions.notifyHovered(tpl.fields[index].name);
+            this.actions.notifyHovered(tpl.fields[index].id);
         };
 
         var onLeave = (index, ev) => {
-            this.actions.notifyUnhovered(tpl.fields[index].name);
+            this.actions.notifyUnhovered(tpl.fields[index].id);
         };
 
         var onFieldSubmit = (index, name) => {

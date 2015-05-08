@@ -94,14 +94,14 @@ TabAnnotator.prototype = {
         this.worker.port.emit("getTemplate");
     },
 
-    /* Highlight all annotations with this field name */
-    highlightField: function (name) {
-        this.worker.port.emit("highlightField", name);
+    /* Highlight all annotations for this field */
+    highlightField: function (fieldId) {
+        this.worker.port.emit("highlightField", fieldId);
     },
 
-    /* Don't highlight annotations with this field name */
-    unhighlightField: function (name) {
-        this.worker.port.emit("unhighlightField", name);
+    /* Don't highlight annotations for this field */
+    unhighlightField: function (fieldId) {
+        this.worker.port.emit("unhighlightField", fieldId);
     },
 
     _injectScripts: function(){
