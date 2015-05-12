@@ -12,6 +12,10 @@ AnnotatorActions = {
         });
     },
 
+    startEditing: function (fieldId) {
+        this.emit("startEditing", {fieldId: fieldId});
+    },
+
     emit: function (action, data) {
         self.port.emit("AnotatorAction", action, data);
     }
@@ -103,13 +107,9 @@ function FieldAnnotator(overlay, annotations) {
         }
         else {
             // user clicked on the existing annotation - start editing it
-            /*
-            console.log("FieldAnnotator edit");
-            $(elem).blur();
-            annotations.linkedFields(elem).forEach((name) => {
-                self.port.emit("field:edit", name);
-            });
-            */
+            console.log("FieldAnnotator.onClick edit");
+            var fieldId = annotations.getId(elem);
+            AnnotatorActions.startEditing(fieldId);
         }
     };
 
