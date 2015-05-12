@@ -42,12 +42,12 @@ function Annotator(){
     });
     */
 
-    self.port.on("highlightField", (name) => {
-        this.annotationsDisplay.addSticky(name);
+    self.port.on("highlightField", (data) => {
+        this.annotationsDisplay.addSticky(data.fieldId);
     });
 
-    self.port.on("unhighlightField", (name) => {
-        this.annotationsDisplay.removeSticky(name);
+    self.port.on("unhighlightField", (data) => {
+        this.annotationsDisplay.removeSticky(data.fieldId);
     });
 
     this.setTool(new FieldAnnotator(this.overlay, this.annotations));

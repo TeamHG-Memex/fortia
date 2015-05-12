@@ -43,7 +43,7 @@ AnnotationsDisplay.prototype = {
     /* highlight annotations for the field `name` permanently */
     addSticky: function (fieldId) {
         if (!this.sticky[fieldId]){
-            console.log("addSticky", fieldId);
+            console.log("AnnotationsDisplay.addSticky", fieldId);
             this.sticky[fieldId] = true;
             this.updateAll();
         }
@@ -53,7 +53,7 @@ AnnotationsDisplay.prototype = {
     /* don't highlight annotations for the field `name` permanently */
     removeSticky: function (fieldId) {
         if (this.sticky[fieldId]){
-            console.log("removeSticky", fieldId);
+            console.log("AnnotationsDisplay.removeSticky", fieldId);
             delete this.sticky[fieldId];
             this.updateAll();
         }
