@@ -434,118 +434,7 @@ var Sidebar = React.createClass({
         addon.port.on("template:changed", (template) => {
             this.setState({template: template});
         });
-
-        /*
-        addon.port.on("template:activate", (id) => {this.activateTemplate(id)});
-        addon.port.on("template:remove", (id) => {
-            this.removeTemplate(id, () => {
-                addon.port.emit("template:removed", id);
-            });
-        });
-        addon.port.on("field:add", (id, name) => {this.addField(id, name)});
-        addon.port.on("field:edit", (id, name) => {this.showEditorByName(id, name)});
-        addon.port.on("state:get", () => {addon.port.emit('sidebar:state', this.state)});
-        addon.port.on("state:set", (state) => {
-            this.replaceState(state, () => {
-                console.log('sidebar state is set to ', this.state);
-                addon.port.emit("sidebar:state-updated");
-            })
-        });
-        */
     },
-
-    /*
-    addField: function(id, name, callback){
-        this.confirmAll(id, () => {
-            this.updateTemplate(id, tpl => {
-                var field = {name: name, prevName: name, editing: true};
-                return update(tpl, {fields: {$push: [field]}});
-            }, callback);
-        });
-    },
-
-    getUpdatedTemplates: function(id, process) {
-        return this.state.templates.map(tpl => {
-            if (tpl.key != id){
-                return tpl;
-            }
-            return process(tpl);
-        }).filter(tpl => !!tpl);
-    },
-
-    updateTemplate: function (id, process, callback) {
-        this.setState({templates: this.getUpdatedTemplates(id, process)}, callback);
-    },
-
-    removeTemplate: function (id, callback) {
-        this.updateTemplate(id, tpl => null, () => {
-            this.setState({activeTemplateId: null}, callback);
-        });
-    },
-
-    updateTemplateFields: function (id, process, callback) {
-        this.updateTemplate(id, tpl => {
-            if (tpl.key != this.state.activeTemplateId) {
-                console.log('template is inactive', id);
-                return tpl;
-            }
-
-            var fields = process(tpl.fields, tpl);
-            return update(tpl, {fields: {$set: fields}});
-        }, callback);
-    },
-
-    _updateTemplateField: function (id, index, process, callback) {
-        this.updateTemplateFields(id, fields => {
-            return fields.map((field, i) => {
-                if (i != index){
-                    return field;
-                }
-                return process(field, i);
-            });
-        }, callback);
-    },
-
-    updateTemplateField: function (id, index, changes, callback) {
-        this._updateTemplateField(id, index, (field) => {
-            var oldName = field.name;
-            var newName = changes.name;
-            if (newName && oldName != newName){
-                addon.port.emit("field:renamed", oldName, newName);
-            }
-            return _.extend({}, field, changes)
-        }, callback);
-    },
-
-    confirmAll: function (id, callback) {
-        this.updateTemplateFields(id, fields => {
-            return fields.map((field, i) => {
-                if (!field.editing) {
-                    return field;
-                }
-
-                // XXX: not clean. This assumes the current editor
-                // corresponds to the template being confirmed.
-                if (!this.refs.editor.fieldOk(i)) {
-                    return field;
-                }
-                return update(field, {editing: {$set: false}});
-            });
-        }, callback);
-    },
-
-    showEditorByName: function (id, name) {
-        var template = this.state.templates.filter(tpl => tpl.key == id)[0];
-        var index = template.fields.findIndex(f => f.name == name);
-        if (index != -1){
-            this.showEditorByIndex(id, index);
-        }
-        else{
-            console.error("bad field name", name, template.fields);
-        }
-    },
-
-    */
 
     _fieldsToClose: function () {
         return this.state.template.fields.filter((field, i) => {
@@ -572,26 +461,6 @@ var Sidebar = React.createClass({
         */
     },
 
-    /*
-    activateTemplate: function (id) {
-        console.log('Sidebar.activateTemplate', id);
-
-        // add an empty template if it is not known
-        var templates = this.state.templates;
-        if (!this.state.templates.some(tpl => tpl.key == id)){
-            templates.push({key: id, fields: []});
-        }
-
-        this.setState({activeTemplateId: id, templates: templates}, () => {
-            console.log('Sidebar.activateTemplate done; new state is', this.state);
-        });
-    },
-
-    getActiveTemplate: function () {
-        var actId = this.state.activeTemplateId;
-        return this.state.templates.filter(tpl => tpl.key == actId)[0];
-    },
-    */
     onSaveAs: function () {
         this.actions.saveTemplateAs();
     },
