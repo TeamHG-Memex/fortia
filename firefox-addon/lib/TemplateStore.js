@@ -67,11 +67,15 @@ var TemplateStore = {
         return newField;
     },
 
-    renameField: function (templateId, fieldId, newName) {
+    renameField: function (templateId, fieldId, newName, isFinal) {
         var changes = 0;
         this.get(templateId).fields.forEach(field => {
-            if (field.id == fieldId && field.name != newName) {
+            if (field.id == fieldId) {
                 field.name = newName;
+                if (isFinal){
+                    field.prevName = newName;
+                    field.editing = false;
+                }
                 changes += 1;
             }
         });
@@ -129,17 +133,13 @@ AppDispatcher.register(function(payload) {
             }
             break;
         case "renameField":
-            if (TemplateStore.renameField(templateId, data.fieldId, data.newName)) {
+            if (TemplateStore.renameField(templateId, data.fieldId, data.newName, data.isFinal)) {
                 TemplateStore.emitChanged(templateId);
                 TemplateStore.emit("fieldRenamed", templateId, {
                     fieldId: data.fieldId,
                     newName: data.newName
                 });
             }
-            break;
-        case "confirmFields":
-            TemplateStore.confirmFields(templateId, data.fieldIds);
-            TemplateStore.emitChanged(templateId);
             break;
         case "startEditing":
             TemplateStore.startEditing(templateId, data.fieldId, data.closeIds);

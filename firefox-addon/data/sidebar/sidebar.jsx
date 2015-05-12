@@ -29,6 +29,7 @@ because it is not available in Sidebar context.
 SidebarActions = function (templateId) {
     this.templateId = templateId;
     this.emit = (action, data) => {
+        //console.log("SidebarAction", this.templateId, action, data);
         addon.port.emit("SidebarAction", this.templateId, action, data);
     }
 };
@@ -46,12 +47,8 @@ SidebarActions.prototype = {
         this.emit("field:unhovered", {fieldId: fieldId});
     },
 
-    renameField: function (fieldId, newName) {
-        this.emit("renameField", {fieldId: fieldId, newName: newName});
-    },
-
-    confirmFields: function (fieldIds) {
-        this.emit("confirmFields", {fieldIds: fieldIds});
+    renameField: function (fieldId, newName, isFinal) {
+        this.emit("renameField", {fieldId: fieldId, newName: newName, isFinal: isFinal});
     },
 
     startEditing: function (fieldId, closeIds) {
@@ -556,13 +553,6 @@ var Sidebar = React.createClass({
         })
     },
 
-    confirmField: function (index) {
-        var field = this.state.template.fields[index];
-        if (field.editing && this.refs.editor.fieldOk(index)){
-            this.actions.confirmFields([field.id]);
-        }
-    },
-
     showEditorByIndex: function (index) {
         var fieldId = this.state.template.fields[index].id;
         var closeIds = this._fieldsToClose().map(field => field.id);
@@ -636,11 +626,11 @@ var Sidebar = React.createClass({
         };
 
         var onFieldSubmit = (index, name) => {
-            this.confirmField(index);
+            this.actions.renameField(tpl.fields[index].id, name, true);
         };
 
         var onFieldChange = (index, name) => {
-            this.actions.renameField(tpl.fields[index].id, name);
+            this.actions.renameField(tpl.fields[index].id, name, false);
         };
 
         return (
