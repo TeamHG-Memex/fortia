@@ -124,6 +124,14 @@ AppDispatcher.register(function(payload) {
     }
     var templateId = data.templateId;
     switch (payload.action) {
+        case "deleteTemplate":
+            TemplateStore.deleteTemplate(templateId);
+            break;
+        case "createTemplate":
+            if (TemplateStore.createTemplate(templateId)) {
+                TemplateStore.emitChanged(templateId);
+            }
+            break;
         case "createField":
             var newField = TemplateStore.createField(templateId);
             TemplateStore.emitChanged(templateId);
@@ -131,11 +139,6 @@ AppDispatcher.register(function(payload) {
                 field: newField,
                 selector: data.selector
             });
-            break;
-        case "createTemplate":
-            if (TemplateStore.createTemplate(templateId)) {
-                TemplateStore.emitChanged(templateId);
-            }
             break;
         case "renameField":
             if (TemplateStore.renameField(templateId, data.fieldId, data.newName, data.isFinal)) {

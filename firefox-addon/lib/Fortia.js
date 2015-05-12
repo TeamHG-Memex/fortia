@@ -141,6 +141,7 @@ Session.prototype = {
     },
 
     destroy: function () {
+        this.actions.emit("deleteTemplate");
         TemplateStore.off("changed", this.onDataChanged);
         this.deactivate();
         this.sidebar.dispose();
