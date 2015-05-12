@@ -106,34 +106,12 @@ DomAnnotations.prototype = {
     },
 
     /* Remove all annotations for the field */
-    removeField: function (name) {
-        this.allElements().each((idx, elem) => {
-            var id = this.getId(elem);
-            var data = this.getData(elem);
-            var annotations = data.annotations;
-            var deletes = [];
-            var newAnnotations = {};
-            for (let attr of Object.keys(annotations)) {
-                if (annotations[attr] == name) {
-                    deletes.push({id: id, name: name, attr: attr});
-                }
-                else {
-                    newAnnotations[attr] = annotations[attr];
-                }
-            }
-
-            if (Object.keys(newAnnotations).length == 0){
-                // all properties are removed
-                this.removeAnnotations(elem);
-            }
-            else {
-                // some properties are still present
-                data.annotations = newAnnotations;
-                this.setData(elem, data);
-            }
-
-            deletes.forEach((info) => this.emit("removed", info));
-        });
+    removeField: function (fieldId) {
+        // FIXME: id should be per-attribute, not per-element.
+        // currently multiple attributes are not supported.
+        var elem = this.byId(fieldId);
+        this.removeAnnotations(elem);
+        this.emit("removed", {fieldId: fieldId});
     },
 
     /* get a list of annotations from DOM */

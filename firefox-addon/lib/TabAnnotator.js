@@ -47,6 +47,7 @@ function TabAnnotator(tab){
     this._injectScripts();
     this._forwardEventToWorker("fieldCreated");
     this._forwardEventToWorker("fieldRenamed");
+    this._forwardEventToWorker("fieldRemoved");
 }
 
 TabAnnotator.prototype = {

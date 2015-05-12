@@ -103,6 +103,11 @@ var TemplateStore = {
         })
     },
 
+    removeField: function (templateId, fieldId) {
+        var tpl = this.get(templateId);
+        tpl.fields = tpl.fields.filter(field => field.id != fieldId);
+    },
+
     _suggestFieldName: function (templateId) {
         var nextId = this.nextId[templateId] || 1;
         this.nextId[templateId] = nextId + 1;
@@ -144,6 +149,11 @@ AppDispatcher.register(function(payload) {
         case "startEditing":
             TemplateStore.startEditing(templateId, data.fieldId, data.closeIds);
             TemplateStore.emitChanged(templateId);
+            break;
+        case "removeField":
+            TemplateStore.removeField(templateId, data.fieldId);
+            TemplateStore.emitChanged(templateId);
+            TemplateStore.emit("fieldRemoved", templateId, {fieldId: data.fieldId});
             break;
     }
 });

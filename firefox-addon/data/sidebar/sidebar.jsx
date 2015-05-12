@@ -53,6 +53,10 @@ SidebarActions.prototype = {
 
     startEditing: function (fieldId, closeIds) {
         this.emit("startEditing", {fieldId: fieldId, closeIds: closeIds});
+    },
+
+    removeField: function (fieldId) {
+        this.emit("removeField", {fieldId: fieldId});
     }
 };
 
@@ -449,18 +453,6 @@ var Sidebar = React.createClass({
         this.actions.startEditing(fieldId, closeIds);
     },
 
-    onFieldRemove: function (index) {
-        /*
-        var removedField = null;
-        this.updateTemplateFields(id, fields => {
-            removedField = fields[index];
-            return update(fields, {$splice: [[index, 1]]});  // remove fields[index]
-        }, () => {
-            addon.port.emit("field:removed", removedField.name);
-        });
-        */
-    },
-
     onSaveAs: function () {
         this.actions.saveTemplateAs();
     },
@@ -502,6 +494,10 @@ var Sidebar = React.createClass({
             this.actions.renameField(tpl.fields[index].id, name, false);
         };
 
+        var onFieldRemove = (index) => {
+            this.actions.removeField(tpl.fields[index].id);
+        };
+
         return (
             <div>
                 <FortiaHeader />
@@ -510,7 +506,7 @@ var Sidebar = React.createClass({
                                 onFieldMouseLeave={onLeave}
                                 onFieldSubmit={onFieldSubmit}
                                 onFieldChange={onFieldChange}
-                                onFieldRemove={this.onFieldRemove}
+                                onFieldRemove={onFieldRemove}
                                 showEditorByIndex={this.showEditorByIndex}
                                 onCancelAnnotation={this.onCancelAnnotation}
                                 onSaveAs={this.onSaveAs}

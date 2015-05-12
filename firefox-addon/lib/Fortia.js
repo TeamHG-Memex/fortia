@@ -70,8 +70,8 @@ function Session(tab) {
             }
             switch (action){
                 case "renameField":
+                case "removeField":
                 case "startEditing":
-                case "confirmFields":
                     this.actions.emit(action, data);
                     break;
                 case "saveTemplateAs":

@@ -36,11 +36,9 @@ function Annotator(){
         this.annotations.rename(data.fieldId, data.newName);
     });
 
-    /*
-    self.port.on("removeField", (name) => {
-        this.annotations.removeField(name);
+    self.port.on("fieldRemoved", (data) => {
+        this.annotations.removeField(data.fieldId);
     });
-    */
 
     self.port.on("highlightField", (data) => {
         this.annotationsDisplay.addSticky(data.fieldId);
