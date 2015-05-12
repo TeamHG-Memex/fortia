@@ -212,9 +212,7 @@ var FieldEdit = React.createClass({
         return {ok: this.props.validate(this.props.name)};
     },
     componentDidMount: function () {
-        // FIXME: this is ugly, and this doesn't always work.
-        // Why isn't focus working immediately??
-        window.setTimeout(() => {this.focus().select()}, 100);
+        this.focus().select();
     },
     focus: function () {
         return $(this.refs.nameInput.getDOMNode()).focus();
@@ -278,7 +276,7 @@ var FieldEdit = React.createClass({
             <form className="input-group input-group-sm" onSubmit={this.onSubmit}>
 
                 <input type="text" ref="nameInput"
-                       className="form-control" autofocus placeholder="field name"
+                       className="form-control" autoFocus placeholder="field name"
                        onChange={this.onInputChange}
                        onKeyDown={this.onInputKeyDown}
                        defaultValue={this.props.name} />
