@@ -4,10 +4,10 @@ var tabs = require("sdk/tabs");
 var ui = require("sdk/ui");
 
 var protocol = require('./protocol.js');
-var { Fortia } = require("./Fortia.js");
+var { SessionManager } = require("./SessionManager.js");
 
 
-var fortia = new Fortia();
+var fortia = new SessionManager();
 
 
 // for debugging - go to some initial url

@@ -1,30 +1,13 @@
+/*
+Annotation session.
+*/
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
-var { Hotkey } = require("sdk/hotkeys");
 
 var dialogs = require("dialogs");
 var { annotators } = require("./TabAnnotator.js");
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
-
-
-/* Ask user where to save the template and save it. */
-var nextSuggestedIndex = 0;
-var saveTemplateToFile = function (html, url) {
-    var filename = "scraper-" + nextSuggestedIndex + ".json";
-    var pageData = {
-        url: url,
-        headers: [],
-        body: html,
-        page_id: null,
-        encoding: 'utf-8'
-    };
-    var data = JSON.stringify({templates: [pageData]});
-    var ok = dialogs.save("Save the template", filename, data);
-    if (ok){
-        nextSuggestedIndex += 1;
-    }
-};
 
 
 /* Action Creator */
@@ -41,9 +24,8 @@ TemplateActions.prototype = {
     }
 };
 
-
 /*
-Annotation session.
+Annotation session object. It glues a sidebar and an in-page annotator.
 */
 function Session(tab) {
     this.tab = tab;
@@ -152,74 +134,22 @@ Session.prototype = {
 };
 
 
-/*
-Main addon code which manages the UI: toggle button and per-tab annotation UIs.
-
-1. It should store all annotation sessions.
-2. When a new tab is activated, Fortia should find a session active in
-   this tab.
-3. If there is no session, a sidebar and an annotator should be hidden.
-4. If there is a session, a sidebar and an annotator should be displayed,
-   and their contents should be updated with session data.
-*/
-
-
-function Fortia() {
-    this.sessions = {};  // tab.id => Session
-
-    /* A button for showing/hiding annotation UI */
-    this.toggleButton = ui.ActionButton({
-        id: "annotate-button",
-        label: "Annotation Tool",
-        icon: "./icons/portia-64.png",
-        onClick: (state) => { this.toggleForCurrentTab() }
-    });
-
-    /* A shortcut: on OS X press CMD+E to activate the UI. */
-    this.toggleUIhotkey = Hotkey({
-        combo: "accel-e",
-        onPress: () => { this.toggleForCurrentTab() }
-    });
-
-    tabs.on("activate", (tab) => {
-        this.setButtonHighlighted(this.hasSession(tab.id));
-
-        Object.keys(this.sessions).forEach((tabId) => {
-            if (!this.hasSession(tabId)) {
-                return;
-            }
-            var session = this.sessions[tabId];
-            (tabId == tab.id) ? session.activate() : session.deactivate();
-        });
-    });
-}
-
-
-Fortia.prototype = {
-
-    toggleForCurrentTab: function () {
-        var tab = tabs.activeTab;
-        if (this.hasSession(tab.id)) {
-            this.sessions[tab.id].destroy();
-            delete this.sessions[tab.id];
-            this.setButtonHighlighted(false);
-        }
-        else {
-            this.sessions[tab.id] = new Session(tab);
-            this.setButtonHighlighted(true);
-        }
-    },
-
-    hasSession: function(tabId) {
-        var session = this.sessions[tabId];
-        return session && !session.destroyed;
-    },
-
-    setButtonHighlighted: function (active) {
-        var icon = active ? "./icons/portia-64-active.png" : "./icons/portia-64.png";
-        this.toggleButton.state("tab", {icon: icon});
+/* Ask user where to save the template and save it. */
+var nextSuggestedIndex = 0;
+var saveTemplateToFile = function (html, url) {
+    var filename = "scraper-" + nextSuggestedIndex + ".json";
+    var pageData = {
+        url: url,
+        headers: [],
+        body: html,
+        page_id: null,
+        encoding: 'utf-8'
+    };
+    var data = JSON.stringify({templates: [pageData]});
+    var ok = dialogs.save("Save the template", filename, data);
+    if (ok){
+        nextSuggestedIndex += 1;
     }
 };
 
-exports.Fortia = Fortia;
-
+exports.Session = Session;
