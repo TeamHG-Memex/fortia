@@ -60,58 +60,76 @@ var TemplateStore = {
         var newField = {
             name: name,
             prevName: name,
-            editing: true,
+            editing: false,
+            valid: true,
             id: fieldId
         };
         this.get(templateId).fields.push(newField);
+        this.validate(templateId);
         return newField;
     },
 
     renameField: function (templateId, fieldId, newName, isFinal) {
-        var changes = 0;
-        this.get(templateId).fields.forEach(field => {
-            if (field.id == fieldId) {
-                field.name = newName;
-                if (isFinal){
-                    field.prevName = newName;
-                    field.editing = false;
-                }
-                changes += 1;
-            }
-        });
-        return changes;
+        var fields = this.get(templateId).fields.filter(field => field.id == fieldId);
+        fields.forEach(field => {field.name = newName});
+        this.validate(templateId);
+
+        if (isFinal){
+            // commit all valid fields
+            fields.filter(field => field.valid).forEach(field => {
+                field.prevName = newName;
+                field.editing = false;
+            });
+        }
     },
 
-    confirmFields: function (templateId, fieldIds) {
-        var ids = new Set(fieldIds);
+    /*
+    * try to close all editors
+    * */
+    confirmFields: function (templateId) {
         this.get(templateId).fields.forEach(field => {
-            if (ids.has(field.id)) {
+            if (field.valid) {
                 field.prevName = field.name;
                 field.editing = false;
             }
         });
     },
 
-    startEditing: function (templateId, fieldId, closeIds) {
-        closeIds = closeIds || [];
-        this.confirmFields(templateId, closeIds);
+    startEditing: function (templateId, fieldId) {
+        this.confirmFields(templateId);
         this.get(templateId).fields.forEach(field => {
             if (field.id == fieldId){
                 field.prevName = field.name;
                 field.editing = true;
             }
-        })
+        });
     },
 
     removeField: function (templateId, fieldId) {
         var tpl = this.get(templateId);
         tpl.fields = tpl.fields.filter(field => field.id != fieldId);
+        this.validate(templateId);
     },
 
     _suggestFieldName: function (templateId) {
         var nextId = this.nextId[templateId] || 1;
         this.nextId[templateId] = nextId + 1;
         return "field" + nextId;
+    },
+
+    /*
+    * set field.valid attribute for all fields with editing=true
+    * */
+    validate: function (templateId) {
+        var fields = this.get(templateId).fields;
+        var names = {};
+        fields.forEach(field => {
+            names[field.name] = names[field.name] || [];
+            names[field.name].push(field.id);
+        });
+        fields.filter(field => field.editing).forEach(field => {
+            field.valid = names[field.name].length == 1 && field.name.trim() != "";
+        });
     }
 };
 
@@ -134,6 +152,7 @@ AppDispatcher.register(function(payload) {
             break;
         case "createField":
             var newField = TemplateStore.createField(templateId);
+            TemplateStore.startEditing(templateId, newField.id);
             TemplateStore.emitChanged(templateId);
             TemplateStore.emit("fieldCreated", templateId, {
                 field: newField,
@@ -141,16 +160,15 @@ AppDispatcher.register(function(payload) {
             });
             break;
         case "renameField":
-            if (TemplateStore.renameField(templateId, data.fieldId, data.newName, data.isFinal)) {
-                TemplateStore.emitChanged(templateId);
-                TemplateStore.emit("fieldRenamed", templateId, {
-                    fieldId: data.fieldId,
-                    newName: data.newName
-                });
-            }
+            TemplateStore.renameField(templateId, data.fieldId, data.newName, data.isFinal);
+            TemplateStore.emitChanged(templateId);
+            TemplateStore.emit("fieldRenamed", templateId, {
+                fieldId: data.fieldId,
+                newName: data.newName
+            });
             break;
         case "startEditing":
-            TemplateStore.startEditing(templateId, data.fieldId, data.closeIds);
+            TemplateStore.startEditing(templateId, data.fieldId);
             TemplateStore.emitChanged(templateId);
             break;
         case "removeField":

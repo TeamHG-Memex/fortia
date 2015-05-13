@@ -11,8 +11,8 @@ if (addon.mocked){
     template = {
         key: "-3-2",
         fields: [
-            {name: "title", prevName: "title", editing: false, id: "asdfhg34"},
-            {name: "score", prevName: "score", editing: false, id: "876hlkjb"},
+            {name: "title", prevName: "title", editing: false, valid: true, id: "asdfhg34"},
+            {name: "score", prevName: "score", editing: false, valid: true, id: "876hlkjb"},
         ]
     };
 }
@@ -208,9 +208,6 @@ var FieldDisplay = React.createClass({
 
 
 var FieldEdit = React.createClass({
-    getInitialState: function() {
-        return {ok: this.props.validate(this.props.name)};
-    },
     componentDidMount: function () {
         this.focus().select();
     },
@@ -220,17 +217,9 @@ var FieldEdit = React.createClass({
     getValue: function () {
         return this.refs.nameInput.getDOMNode().value.trim();
     },
-    submitIfOk: function () {
-        if (this.state.ok){
-            this.props.onSubmit(this.getValue());
-        }
-        else {
-            this.focus();
-        }
-    },
     onSubmit: function (ev) {
         ev.preventDefault();
-        this.submitIfOk();
+        this.props.onSubmit(this.getValue());
     },
     onReset: function (ev) {
         ev.preventDefault();
@@ -245,11 +234,7 @@ var FieldEdit = React.createClass({
     },
     onInputChange: function (ev) {
         var text = this.getValue();
-        this.setState({ok: this.props.validate(text)}, () => {
-            if (this.state.ok) {
-                this.props.onChange(text);
-            }
-        });
+        this.props.onChange(text);
     },
     onInputKeyDown: function (ev) {
         // Esc => cancel; Down => open the dropdown.
@@ -271,7 +256,7 @@ var FieldEdit = React.createClass({
         }
     },
     render: function(){
-        var btnCls = "btn btn-sm dropdown-toggle btn-" + (this.state.ok ? "success": "warning");
+        var btnCls = "btn btn-sm dropdown-toggle btn-" + (this.props.valid ? "success": "warning");
         return (
             <form className="input-group input-group-sm" onSubmit={this.onSubmit}>
 
@@ -307,28 +292,12 @@ var FieldEdit = React.createClass({
 
 
 var TemplateEditor = React.createClass({
-    fieldOk: function (i) {
-        return this.refs['field' + i].state.ok;
-    },
-
-    valueAllowed: function (index, text) {
-        var text = text.trim();
-        if (text.trim() == ""){
-            return false;
-        }
-        var hasDuplicates = this.props.fields.some((f, i) => {
-            return (f.name.trim() == text) && (i != index);
-        });
-        return !hasDuplicates;
-    },
-
     render: function() {
         if (!this.props.fields.length){
             return <div className="container"><EmptyMessage/></div>;
         }
         var items = this.props.fields.map((field, i) => {
             var ref = "field" + i;
-            var validate = this.valueAllowed.bind(this, i);
             var onRemove = this.props.onFieldRemove.bind(null, i);
             var onEnter = this.props.onFieldMouseEnter.bind(null, i);
             var onLeave = this.props.onFieldMouseLeave.bind(null, i);
@@ -343,10 +312,11 @@ var TemplateEditor = React.createClass({
                                   onMouseLeave={onLeave} />;
             }
             else {
-                return <FieldEdit name={field.name} prevName={field.prevName}
-                                  ref={ref}
+                return <FieldEdit ref={ref}
+                                  name={field.name}
+                                  prevName={field.prevName}
+                                  valid={field.valid}
                                   key={field.id}
-                                  validate={validate}
                                   onSubmit={onSubmit}
                                   onChange={onChange}
                                   onRemove={onRemove}
@@ -438,17 +408,9 @@ var Sidebar = React.createClass({
         });
     },
 
-    _fieldsToClose: function () {
-        return this.state.template.fields.filter((field, i) => {
-            return field.editing && this.refs.editor.fieldOk(i);
-        })
-    },
-
     showEditorByIndex: function (index) {
         var fieldId = this.state.template.fields[index].id;
-        var closeIds = this._fieldsToClose().map(field => field.id);
-        console.log("showEditorByIndex", index, fieldId, closeIds);
-        this.actions.startEditing(fieldId, closeIds);
+        this.actions.startEditing(fieldId);
     },
 
     onSaveAs: function () {

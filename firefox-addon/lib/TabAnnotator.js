@@ -114,9 +114,9 @@ TabAnnotator.prototype = {
         console.log("TabAnnotator._injectScripts to ", tab.id);
 
         this.worker = tab.attach({contentScriptFile: this.scripts});
-        this.worker.port.on("AnotatorAction", function (action, data) {
+        this.worker.port.on("AnnotatorAction", function (action, data) {
             data.templateId = tab.id;
-            console.log("AnotatorAction", action, data);
+            console.log("AnnotatorAction", action, data);
             AppDispatcher.dispatch({
                 action: action,
                 data: data
@@ -126,13 +126,6 @@ TabAnnotator.prototype = {
             console.log("worker is detached", tab.id);
             this.scriptsInjected = false;
         });
-
-        //this.worker.port.on("field:edit", (name) => {
-        //    console.log("field:edit", name);
-        //    // FIXME: sidebar should listen for events
-        //    this.sidebar.editField(name);
-        //});
-
         this.scriptsInjected = true;
     },
 

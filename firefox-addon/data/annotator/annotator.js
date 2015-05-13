@@ -17,7 +17,7 @@ AnnotatorActions = {
     },
 
     emit: function (action, data) {
-        self.port.emit("AnotatorAction", action, data);
+        self.port.emit("AnnotatorAction", action, data);
     }
 };
 

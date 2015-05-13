@@ -41,13 +41,6 @@ function AnnotationSidebar(button) {
                     })
                 });
 
-                /*
-                FIXME: re-enable it
-                worker.port.on("template:remove", () => {
-                    this.deactivate(tabs.activeTab);
-                });
-                */
-
                 worker.port.on("field:renamed", (oldName, newName) => {
                     this.annotator().renameField(oldName, newName);
                 });
