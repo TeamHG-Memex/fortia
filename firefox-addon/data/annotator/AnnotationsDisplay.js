@@ -5,7 +5,7 @@ Class for displaying current annotations on Canvas overlay.
 function AnnotationsDisplay(overlay, annotations) {
     this.overlay = overlay;
     this.annotations = annotations;
-    this.sticky = {};     // field name -> true/false
+    this.sticky = {};     // field id -> true/false
     this.tempStickyId = null;
     this.outlines = [];
     this.outlineOptions = {
@@ -15,10 +15,10 @@ function AnnotationsDisplay(overlay, annotations) {
         fillColor: "#66D8FF",
         fillColorAlpha: 0.2,
     };
-    this.highlightMode = "mouseover";  // other allowed values: "always", "never"
+    this.highlightMode = "mouseover";  // other allowed values: "yes", "no"
 
     var doUpdateAll = (info) => {
-        this.tempStickyId = info.id;
+        this.tempStickyId = info.fieldId;
         this.updateAll();
     };
     this.onAnnotationAdded = doUpdateAll;
@@ -41,20 +41,20 @@ AnnotationsDisplay.prototype = {
     },
 
     /* highlight annotations for the field `name` permanently */
-    addSticky: function (name) {
-        if (!this.sticky[name]){
-            console.log("addSticky", name);
-            this.sticky[name] = true;
+    addSticky: function (fieldId) {
+        if (!this.sticky[fieldId]){
+            console.log("AnnotationsDisplay.addSticky", fieldId);
+            this.sticky[fieldId] = true;
             this.updateAll();
         }
         this.tempStickyId = null;
     },
 
     /* don't highlight annotations for the field `name` permanently */
-    removeSticky: function (name) {
-        if (this.sticky[name]){
-            console.log("removeSticky", name);
-            delete this.sticky[name];
+    removeSticky: function (fieldId) {
+        if (this.sticky[fieldId]){
+            console.log("AnnotationsDisplay.removeSticky", fieldId);
+            delete this.sticky[fieldId];
             this.updateAll();
         }
         this.tempStickyId = null;
@@ -62,10 +62,11 @@ AnnotationsDisplay.prototype = {
 
     /* Update all elements based on current annotations */
     updateAll: function () {
+        //console.log("AnnotationsDisplay.updateAll");
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
-            var id = this.annotations.getid(elem);
-            var ann = this.annotations.getdata(elem).annotations;
+            var fieldId = this.annotations.getId(elem);
+            var ann = this.annotations.getData(elem).annotations;
             var caption = Object.keys(ann).map((attr) => {
                 if (attr == "content"){
                     return ann[attr];
@@ -73,14 +74,8 @@ AnnotationsDisplay.prototype = {
                 return attr + " → " + ann[attr];
             }).join(";");
 
-            var isSticky = Object.keys(ann).some(attr => {
-                var field = ann[attr];
-                return this.sticky[field];
-            });
-            var mode = (id == this.tempStickyId)? "once" : this.highlightMode;
-            if (isSticky) {
-                mode = "always";
-            }
+            var isSticky = fieldId == this.tempStickyId || this.sticky[fieldId];
+            var mode = isSticky ? "yes" : this.highlightMode;
 
             var outline = new ElementOutline(
                 this.overlay.canvas,
@@ -88,9 +83,18 @@ AnnotationsDisplay.prototype = {
                 " " + caption + " ",
                 mode,
                 "#43AC6A"
-                //mode == "always"? '#F04124': "#43AC6A"
+                //mode == "yes"? '#F04124': "#43AC6A"
             );
             outline.trackElem(elem);
+            if (fieldId == this.tempStickyId) {
+                var cb = () => {
+                    this.tempStickyId = null;
+                    outline.showCaption = "mouseover";
+                    outline.off("mouseleave", cb);
+                    outline.updateNow();
+                };
+                outline.on("mouseleave", cb);
+            }
             return outline;
         }));
     },

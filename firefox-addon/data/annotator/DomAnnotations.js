@@ -29,27 +29,31 @@ they are also not handled here yet:
 */
 function DomAnnotations(){
     this.loadFromDOM();
-    this.nextFieldId = 1;
 }
 
 DomAnnotations.prototype = {
     /* Get element's annotation ID */
-    getid: function (elem) {
+    getId: function (elem) {
         return $(elem).attr("data-scrapy-id");
     },
 
+    /* Return true if there is an annotation for elem */
+    exist: function (elem) {
+        return !!this.getId(elem);
+    },
+
     /* Set element's annotation ID */
-    setid: function (elem, id) {
+    setId: function (elem, id) {
         $(elem).attr("data-scrapy-id", id);
     },
 
     /* Return HTML element by its annotation ID */
-    byid: function (id) {
+    byId: function (id) {
         return $("[data-scrapy-id="+id+"]");
     },
 
     /* Get annotation data stored for DOM element */
-    getdata: function(elem){
+    getData: function(elem){
         var data = $(elem).attr("data-scrapy-annotate");
         if (data) {
             return JSON.parse(data);
@@ -57,13 +61,13 @@ DomAnnotations.prototype = {
     },
 
     /* Store annotation data in a DOM element */
-    setdata: function (elem, data) {
+    setData: function (elem, data) {
         return $(elem).attr("data-scrapy-annotate", JSON.stringify(data));
     },
 
     /* Return a list of all linked field names */
     linkedFields: function (elem) {
-        var ann = this.getdata(elem).annotations;
+        var ann = this.getData(elem).annotations;
         return Object.keys(ann).map((attr) => ann[attr]);
     },
 
@@ -79,65 +83,35 @@ DomAnnotations.prototype = {
     },
 
     /* Add a new annotation. */
-    add: function (elem, fieldName, attr="content") {
-        if (!fieldName) {
-            fieldName = "field" + this.nextFieldId;
-            this.nextFieldId += 1;
-        }
-        var id = getRandomString();
-        this.setid(elem, id);
+    add: function (elem, fieldName, fieldId, attr) {
+        attr = attr || "content";
+        this.setId(elem, fieldId);
         var data = {annotations: {[attr]: fieldName}};
-        this.setdata(elem, data).blur();
-        this.emit("added", {id: id, data: data});
+        this.setData(elem, data).blur();
+        this.emit("added", {fieldId: fieldId, data: data});
     },
 
     /* Rename a field */
-    rename: function (oldName, newName) {
-        this.allElements().each((idx, elem) => {
-            var data = this.getdata(elem);
-            var id = this.getid(elem);
-            var annotations = data.annotations;
-            var renames = [];
-            for (let attr of Object.keys(annotations)) {
-                if (annotations[attr] == oldName){
-                    annotations[attr] = newName;
-                    renames.push({id: id, oldName: oldName, name: newName, attr: attr});
-                }
-            }
-            this.setdata(elem, data);
-            renames.forEach((info) => this.emit("renamed", info));
-        });
+    rename: function (fieldId, newName) {
+        // FIXME: id should be per-attribute, not per-element.
+        // currently multiple attributes are not supported.
+        var elem = this.byId(fieldId);
+        var data = this.getData(elem);
+        var annotations = data.annotations;
+        for (let attr of Object.keys(annotations)) {
+            annotations[attr] = newName;
+        }
+        this.setData(elem, data);
+        this.emit("renamed", {fieldId: fieldId, newName: newName});
     },
 
     /* Remove all annotations for the field */
-    removeField: function (name) {
-        this.allElements().each((idx, elem) => {
-            var id = this.getid(elem);
-            var data = this.getdata(elem);
-            var annotations = data.annotations;
-            var deletes = [];
-            var newAnnotations = {};
-            for (let attr of Object.keys(annotations)) {
-                if (annotations[attr] == name) {
-                    deletes.push({id: id, name: name, attr: attr});
-                }
-                else {
-                    newAnnotations[attr] = annotations[attr];
-                }
-            }
-
-            if (Object.keys(newAnnotations).length == 0){
-                // all properties are removed
-                this.removeAnnotations(elem);
-            }
-            else {
-                // some properties are still present
-                data.annotations = newAnnotations;
-                this.setdata(elem, data);
-            }
-
-            deletes.forEach((info) => this.emit("removed", info));
-        });
+    removeField: function (fieldId) {
+        // FIXME: id should be per-attribute, not per-element.
+        // currently multiple attributes are not supported.
+        var elem = this.byId(fieldId);
+        this.removeAnnotations(elem);
+        this.emit("removed", {fieldId: fieldId});
     },
 
     /* get a list of annotations from DOM */

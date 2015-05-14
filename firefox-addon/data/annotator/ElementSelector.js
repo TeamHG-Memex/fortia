@@ -30,18 +30,28 @@ function ElementSelector(overlay, outlineOptions) {
         this.currentElement = null;
     };
 
+    this.onFocus = (event) => {
+        var elem = event.target;
+        console.log("onFocus", elem.tagName, getUniquePath($(elem)));
+        $(elem).blur();
+        return false;
+    };
+
     this.onClick = (event) => {
         var elem = event.target;
         this.emit("click", elem);
+        console.log("clicked", elem.tagName, getUniquePath($(elem)));
         event.stopPropagation();
         event.preventDefault();
-        console.log("clicked", elem.tagName, getUniquePath($(elem)));
     };
 
     this.onOverlayResize = () => {this.outline.update()};
     this.overlay.on("resize", this.onOverlayResize);
     $("*").on("mouseover", this.onMouseOver);
     $(document).on("mouseleave", this.onMouseLeave);
+
+    // XXX: this is ugly. Is there another way to fix focus issues?
+    $("*").on("focus", this.onFocus);
 }
 
 ElementSelector.prototype = {
@@ -53,6 +63,7 @@ ElementSelector.prototype = {
         this.overlay.off("resize", this.onOverlayResize);
         $("*").off("mouseover", this.onMouseOver);
         $(document).off("mouseleave", this.onMouseLeave);
+        $("*").off("focus", this.onFocus);
         this.outline.destroy();
         delete this.outline;
     },

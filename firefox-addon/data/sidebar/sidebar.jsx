@@ -2,23 +2,63 @@
 Sidebar JSX (React) code
 */
 
-var templates = [];
-var activeTemplateId = null;
+var template = {
+    key: null,
+    fields: []
+};
+
 if (addon.mocked){
-    activeTemplateId = '-3-2';
-    templates = [
-        {
-            key: activeTemplateId,
-            fields: [
-                {name: "title", prevName: "title", editing: false},
-                {name: "score", prevName: "score", editing: false},
-            ]
-        }
-    ];
+    template = {
+        key: "-3-2",
+        fields: [
+            {name: "title", prevName: "title", editing: false, valid: true, id: "asdfhg34"},
+            {name: "score", prevName: "score", editing: false, valid: true, id: "876hlkjb"},
+        ]
+    };
 }
 
 
 const update = React.addons.update;
+
+/*
+Actions for interacting with the main addon code.
+
+This is a Flux ActionCreator, with a twist: Dispatcher is not called directly
+because it is not available in Sidebar context.
+*/
+SidebarActions = function (templateId) {
+    this.templateId = templateId;
+    this.emit = (action, data) => {
+        //console.log("SidebarAction", this.templateId, action, data);
+        addon.port.emit("SidebarAction", this.templateId, action, data);
+    }
+};
+
+SidebarActions.prototype = {
+    saveTemplateAs: function () {
+        this.emit("saveTemplateAs");
+    },
+
+    notifyHovered: function (fieldId) {
+        this.emit("field:hovered", {fieldId: fieldId});
+    },
+
+    notifyUnhovered: function (fieldId) {
+        this.emit("field:unhovered", {fieldId: fieldId});
+    },
+
+    renameField: function (fieldId, newName, isFinal) {
+        this.emit("renameField", {fieldId: fieldId, newName: newName, isFinal: isFinal});
+    },
+
+    startEditing: function (fieldId, closeIds) {
+        this.emit("startEditing", {fieldId: fieldId, closeIds: closeIds});
+    },
+
+    removeField: function (fieldId) {
+        this.emit("removeField", {fieldId: fieldId});
+    }
+};
 
 
 // use this.props method, but don't pass an event to it.
@@ -55,6 +95,7 @@ var BootstrapListGroup = React.createClass({
         var items = this.props.children.map(function (item) {
             return (
                 <li className="list-group-item"
+                    key={item.key}
                     onMouseEnter={item.props.onMouseEnter}
                     onMouseLeave={item.props.onMouseLeave}>
                     {item}
@@ -167,9 +208,6 @@ var FieldDisplay = React.createClass({
 
 
 var FieldEdit = React.createClass({
-    getInitialState: function() {
-        return {ok: this.props.validate(this.props.name)};
-    },
     componentDidMount: function () {
         this.focus().select();
     },
@@ -179,17 +217,9 @@ var FieldEdit = React.createClass({
     getValue: function () {
         return this.refs.nameInput.getDOMNode().value.trim();
     },
-    submitIfOk: function () {
-        if (this.state.ok){
-            this.props.onSubmit(this.getValue());
-        }
-        else {
-            this.focus();
-        }
-    },
     onSubmit: function (ev) {
         ev.preventDefault();
-        this.submitIfOk();
+        this.props.onSubmit(this.getValue());
     },
     onReset: function (ev) {
         ev.preventDefault();
@@ -204,11 +234,7 @@ var FieldEdit = React.createClass({
     },
     onInputChange: function (ev) {
         var text = this.getValue();
-        this.setState({ok: this.props.validate(text)}, () => {
-            if (this.state.ok) {
-                this.props.onChange(text);
-            }
-        });
+        this.props.onChange(text);
     },
     onInputKeyDown: function (ev) {
         // Esc => cancel; Down => open the dropdown.
@@ -230,12 +256,12 @@ var FieldEdit = React.createClass({
         }
     },
     render: function(){
-        var btnCls = "btn btn-sm dropdown-toggle btn-" + (this.state.ok ? "success": "warning");
+        var btnCls = "btn btn-sm dropdown-toggle btn-" + (this.props.valid ? "success": "warning");
         return (
             <form className="input-group input-group-sm" onSubmit={this.onSubmit}>
 
                 <input type="text" ref="nameInput"
-                       className="form-control" autofocus placeholder="field name"
+                       className="form-control" autoFocus placeholder="field name"
                        onChange={this.onInputChange}
                        onKeyDown={this.onInputKeyDown}
                        defaultValue={this.props.name} />
@@ -266,44 +292,31 @@ var FieldEdit = React.createClass({
 
 
 var TemplateEditor = React.createClass({
-    fieldOk: function (i) {
-        return this.refs['field' + i].state.ok;
-    },
-
-    valueAllowed: function (index, text) {
-        var text = text.trim();
-        if (text.trim() == ""){
-            return false;
-        }
-        var hasDuplicates = this.props.fields.some((f, i) => {
-            return (f.name.trim() == text) && (i != index);
-        });
-        return !hasDuplicates;
-    },
-
     render: function() {
         if (!this.props.fields.length){
             return <div className="container"><EmptyMessage/></div>;
         }
         var items = this.props.fields.map((field, i) => {
             var ref = "field" + i;
-            var validate = this.valueAllowed.bind(this, i);
-            var onRemove = this.props.onFieldRemove.bind(this, i);
-            var onEnter = this.props.onFieldMouseEnter.bind(this, i);
-            var onLeave = this.props.onFieldMouseLeave.bind(this, i);
-            var showEditor = this.props.showEditorByIndex.bind(this, i);
-            var onSubmit = this.props.onFieldSubmit.bind(this, i);
-            var onChange = this.props.onFieldChange.bind(this, i);
+            var onRemove = this.props.onFieldRemove.bind(null, i);
+            var onEnter = this.props.onFieldMouseEnter.bind(null, i);
+            var onLeave = this.props.onFieldMouseLeave.bind(null, i);
+            var showEditor = this.props.showEditorByIndex.bind(null, i);
+            var onSubmit = this.props.onFieldSubmit.bind(null, i);
+            var onChange = this.props.onFieldChange.bind(null, i);
 
             if (!field.editing) {
-                return <FieldDisplay name={field.name} ref={ref}
+                return <FieldDisplay name={field.name} ref={ref} key={field.id}
                                   onClick={showEditor}
                                   onMouseEnter={onEnter}
                                   onMouseLeave={onLeave} />;
             }
             else {
-                return <FieldEdit name={field.name} prevName={field.prevName} ref={ref}
-                                  validate={validate}
+                return <FieldEdit ref={ref}
+                                  name={field.name}
+                                  prevName={field.prevName}
+                                  valid={field.valid}
+                                  key={field.id}
                                   onSubmit={onSubmit}
                                   onChange={onChange}
                                   onRemove={onRemove}
@@ -379,162 +392,32 @@ var NoTemplate = React.createClass({
 var Sidebar = React.createClass({
     getInitialState: function() {
         console.log("Sidebar.getInitialState()");
-        return {
-            templates: templates,
-            activeTemplateId: activeTemplateId
-        };
+        return {template: template};
+    },
+
+    componentWillUpdate: function (nextProps, nextState) {
+        this.actions = new SidebarActions(nextState.template.key);
     },
 
     componentDidMount: function () {
+        this.actions = new SidebarActions(this.state.template.key);
         addon.port.emit("sidebar:ready");
 
-        addon.port.on("template:activate", (id) => {this.activateTemplate(id)});
-        addon.port.on("template:remove", (id) => {
-            this.removeTemplate(id, () => {
-                addon.port.emit("template:removed", id);
-            });
-        });
-        addon.port.on("field:add", (id, name) => {this.addField(id, name)});
-        addon.port.on("field:edit", (id, name) => {this.showEditorByName(id, name)});
-        addon.port.on("state:get", () => {addon.port.emit('sidebar:state', this.state)});
-        addon.port.on("state:set", (state) => {
-            this.replaceState(state, () => {
-                console.log('sidebar state is set to ', this.state);
-                addon.port.emit("sidebar:state-updated");
-            })
+        addon.port.on("template:changed", (template) => {
+            this.setState({template: template});
         });
     },
 
-    addField: function(id, name, callback){
-        this.confirmAll(id, () => {
-            this.updateTemplate(id, tpl => {
-                var field = {name: name, prevName: name, editing: true};
-                return update(tpl, {fields: {$push: [field]}});
-            }, callback);
-        });
-    },
-
-    getUpdatedTemplates: function(id, process) {
-        return this.state.templates.map(tpl => {
-            if (tpl.key != id){
-                return tpl;
-            }
-            return process(tpl);
-        }).filter(tpl => !!tpl);
-    },
-
-    updateTemplate: function (id, process, callback) {
-        this.setState({templates: this.getUpdatedTemplates(id, process)}, callback);
-    },
-
-    removeTemplate: function (id, callback) {
-        this.updateTemplate(id, tpl => null, () => {
-            this.setState({activeTemplateId: null}, callback);
-        });
-    },
-
-    updateTemplateFields: function (id, process, callback) {
-        this.updateTemplate(id, tpl => {
-            if (tpl.key != this.state.activeTemplateId) {
-                console.log('template is inactive', id);
-                return tpl;
-            }
-
-            var fields = process(tpl.fields, tpl);
-            return update(tpl, {fields: {$set: fields}});
-        }, callback);
-    },
-
-    _updateTemplateField: function (id, index, process, callback) {
-        this.updateTemplateFields(id, fields => {
-            return fields.map((field, i) => {
-                if (i != index){
-                    return field;
-                }
-                return process(field, i);
-            });
-        }, callback);
-    },
-
-    updateTemplateField: function (id, index, changes, callback) {
-        this._updateTemplateField(id, index, (field) => {
-            var oldName = field.name;
-            var newName = changes.name;
-            if (newName && oldName != newName){
-                addon.port.emit("field:renamed", oldName, newName);
-            }
-            return _.extend({}, field, changes)
-        }, callback);
-    },
-
-    confirmAll: function (id, callback) {
-        this.updateTemplateFields(id, fields => {
-            return fields.map((field, i) => {
-                if (!field.editing) {
-                    return field;
-                }
-
-                // XXX: not clean. This assumes the current editor
-                // corresponds to the template being confirmed.
-                if (!this.refs.editor.fieldOk(i)) {
-                    return field;
-                }
-                return update(field, {editing: {$set: false}});
-            });
-        }, callback);
-    },
-
-    showEditorByName: function (id, name) {
-        var template = this.state.templates.filter(tpl => tpl.key == id)[0];
-        var index = template.fields.findIndex(f => f.name == name);
-        if (index != -1){
-            this.showEditorByIndex(id, index);
-        }
-        else{
-            console.error("bad field name", name, template.fields);
-        }
-    },
-
-    showEditorByIndex: function (id, index, callback) {
-        this.confirmAll(id, () => {
-            this.updateTemplateField(id, index, {editing: true}, callback);
-        });
-    },
-
-    onFieldRemove: function (id, index) {
-        var removedField = null;
-        this.updateTemplateFields(id, fields => {
-            removedField = fields[index];
-            return update(fields, {$splice: [[index, 1]]});  // remove fields[index]
-        }, () => {
-            addon.port.emit("field:removed", removedField.name);
-        });
-    },
-
-    activateTemplate: function (id) {
-        console.log('Sidebar.activateTemplate', id);
-
-        // add an empty template if it is not known
-        var templates = this.state.templates;
-        if (!this.state.templates.some(tpl => tpl.key == id)){
-            templates.push({key: id, fields: []});
-        }
-
-        this.setState({activeTemplateId: id, templates: templates}, () => {
-            console.log('Sidebar.activateTemplate done; new state is', this.state);
-        });
-    },
-
-    getActiveTemplate: function () {
-        var actId = this.state.activeTemplateId;
-        return this.state.templates.filter(tpl => tpl.key == actId)[0];
+    showEditorByIndex: function (index) {
+        var fieldId = this.state.template.fields[index].id;
+        this.actions.startEditing(fieldId);
     },
 
     onSaveAs: function () {
-        addon.port.emit("template:saveas");
+        this.actions.saveTemplateAs();
     },
 
-    onCancelAnnotation: function (id) {
+    onCancelAnnotation: function () {
         alert("Sorry, this feature is not implemented yet.");
         /*
         if (confirm("Are you sure? The current annotation will be discarded.")) {
@@ -550,32 +433,30 @@ var Sidebar = React.createClass({
     },
 
     render: function () {
-        var tpl = this.getActiveTemplate() || {key: null, fields: []};
+        var tpl= this.state.template;
         if (!tpl){
             return <div><FortiaHeader/><NoTemplate delay={200} /></div>;
         }
 
-        var onEnter = function (index, ev) {
-            addon.port.emit("field:hovered", tpl.fields[index].name, tpl.key);
+        var onEnter = (index, ev) => {
+            this.actions.notifyHovered(tpl.fields[index].id);
         };
 
-        var onLeave = function (index, ev) {
-            addon.port.emit("field:unhovered", tpl.fields[index].name, tpl.key);
+        var onLeave = (index, ev) => {
+            this.actions.notifyUnhovered(tpl.fields[index].id);
         };
 
         var onFieldSubmit = (index, name) => {
-            this.confirmAll(tpl.key, () => {
-                var changes = {name: name, prevName: name, editing: false};
-                this.updateTemplateField(tpl.key, index, changes);
-            });
-        };
-        var onFieldChange = (index, name) => {
-            this.updateTemplateField(tpl.key, index, {name: name});
+            this.actions.renameField(tpl.fields[index].id, name, true);
         };
 
-        var showEditorByIndex = this.showEditorByIndex.bind(this, tpl.key);
-        var onFieldRemove = this.onFieldRemove.bind(this, tpl.key);
-        var onCancelAnnotation = this.onCancelAnnotation.bind(this, tpl.key);
+        var onFieldChange = (index, name) => {
+            this.actions.renameField(tpl.fields[index].id, name, false);
+        };
+
+        var onFieldRemove = (index) => {
+            this.actions.removeField(tpl.fields[index].id);
+        };
 
         return (
             <div>
@@ -586,8 +467,8 @@ var Sidebar = React.createClass({
                                 onFieldSubmit={onFieldSubmit}
                                 onFieldChange={onFieldChange}
                                 onFieldRemove={onFieldRemove}
-                                showEditorByIndex={showEditorByIndex}
-                                onCancelAnnotation={onCancelAnnotation}
+                                showEditorByIndex={this.showEditorByIndex}
+                                onCancelAnnotation={this.onCancelAnnotation}
                                 onSaveAs={this.onSaveAs}
                                 onHelp={this.onHelp}
                                 useFinish={false}

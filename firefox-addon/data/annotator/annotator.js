@@ -3,6 +3,26 @@ Content script with annotation UI.
 */
 
 /*
+Actions for interacting with the main addon code.
+*/
+AnnotatorActions = {
+    createField: function (elem) {
+        this.emit("createField", {
+            selector: getUniquePath($(elem))
+        });
+    },
+
+    startEditing: function (fieldId) {
+        this.emit("startEditing", {fieldId: fieldId});
+    },
+
+    emit: function (action, data) {
+        self.port.emit("AnnotatorAction", action, data);
+    }
+};
+
+
+/*
 Main annotator object.
 It creates a canvas overlay and manages annotation tools.
 */
@@ -11,24 +31,25 @@ function Annotator(){
     this.annotations = new DomAnnotations();
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
-    this.annotations.on("added", (info) => {
-        self.port.emit("field:added", info);
+    self.port.on("fieldCreated", (data) => {
+        var elem = $(data.selector);
+        this.annotations.add(elem, data.field.name, data.field.id);
     });
 
-    self.port.on("renameField", (oldName, newName) => {
-        this.annotations.rename(oldName, newName);
+    self.port.on("fieldRenamed", (data) => {
+        this.annotations.rename(data.fieldId, data.newName);
     });
 
-    self.port.on("removeField", (name) => {
-        this.annotations.removeField(name);
+    self.port.on("fieldRemoved", (data) => {
+        this.annotations.removeField(data.fieldId);
     });
 
-    self.port.on("highlightField", (name) => {
-        this.annotationsDisplay.addSticky(name);
+    self.port.on("highlightField", (data) => {
+        this.annotationsDisplay.addSticky(data.fieldId);
     });
 
-    self.port.on("unhighlightField", (name) => {
-        this.annotationsDisplay.removeSticky(name);
+    self.port.on("unhighlightField", (data) => {
+        this.annotationsDisplay.removeSticky(data.fieldId);
     });
 
     this.setTool(new FieldAnnotator(this.overlay, this.annotations));
@@ -58,8 +79,13 @@ Annotator.prototype = {
     },
 
     /* lock/unlock interactions */
-    lock: function () {this.overlay.blockInteractions();},
-    unlock: function () {this.overlay.unblockInteractions();},
+    lock: function () {
+        this.overlay.blockInteractions();
+    },
+    unlock: function () {
+        this.overlay.unblockInteractions();
+        this.annotationsDisplay.updateAll();
+    }
 };
 
 
@@ -69,26 +95,34 @@ function FieldAnnotator(overlay, annotations) {
     this.overlay = overlay;
     this.selector = new ElementSelector(this.overlay);
 
-    this.selector.on("click", function(elem){
-        if (annotations.getid(elem)) {
-            $(elem).blur();
-            annotations.linkedFields(elem).forEach((name) => {
-                self.port.emit("field:edit", name);
-            });
-            return;
+    this.onClick = (elem) => {
+        if (!annotations.exist(elem)){
+            // An element which wasn't previously annotated - create
+            // a new annotation for it:
+            // 1. mapped attribute is 'content';
+            // 2. generate a field name and ask user to change it.
+            console.log("FieldAnnotator.onClick create");
+            AnnotatorActions.createField(elem);
+            // field is actually created in a fieldCreated event handler
         }
+        else {
+            // user clicked on the existing annotation - start editing it
+            console.log("FieldAnnotator.onClick edit");
+            var fieldId = annotations.getId(elem);
+            AnnotatorActions.startEditing(fieldId);
+        }
+    };
 
-        // An element which wasn't previously annotated - create
-        // a new annotation for it:
-        // 1. mapped attribute is 'content';
-        // 2. generate a field name and ask user to change it.
-        annotations.add(elem);
-    });
+    this.selector.on("click", this.onClick);
 }
 
 
 FieldAnnotator.prototype = {
-    destroy: function() {this.selector.destroy();}
+
+    destroy: function() {
+        this.selector.off("click", this.onClick);
+        this.selector.destroy();
+    }
 };
 
 /* enable .on, .off and .emit methods for FieldAnnotator */
