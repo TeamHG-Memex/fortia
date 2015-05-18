@@ -3,6 +3,8 @@ Annotation session.
 */
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
+var { EventTarget } = require("sdk/event/target");
+var { emit } = require('sdk/event/core');
 
 var dialogs = require("dialogs");
 var { annotators } = require("./TabAnnotator.js");
@@ -31,6 +33,7 @@ function Session(tab) {
     this.tab = tab;
     this.destroyed = false;
     this.actions = new TemplateActions(this.tab.id);
+    this.port = new EventTarget();
 
     this.sidebarWorker = null;
     this.sidebar = ui.Sidebar({
@@ -59,6 +62,9 @@ function Session(tab) {
                 case "saveTemplateAs":
                     this.saveTemplateAs();
                     break;
+                case "stopAnnotation":
+                    emit(this.port, "stopAnnotation");
+                    break;
                 case "field:hovered":
                     this.annotator().highlightField(data);
                     break;
@@ -66,7 +72,7 @@ function Session(tab) {
                     this.annotator().unhighlightField(data);
                     break;
                 default:
-                    throw Error("unknown SidebarAction:", action);
+                    throw Error("unknown SidebarAction: " + action);
             }
         });
     });
@@ -129,7 +135,7 @@ Session.prototype = {
         this.sidebar.dispose();
         this.destroyed = true;
         this.tab.reload();
-        console.log("session is destroyed", this.tab.id);
+        console.log("session is destroyed");
     }
 };
 

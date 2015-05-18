@@ -39,6 +39,10 @@ SidebarActions.prototype = {
         this.emit("saveTemplateAs");
     },
 
+    stopAnnotation: function () {
+        this.emit("stopAnnotation");
+    },
+
     notifyHovered: function (fieldId) {
         this.emit("field:hovered", {fieldId: fieldId});
     },
@@ -418,14 +422,9 @@ var Sidebar = React.createClass({
     },
 
     onCancelAnnotation: function () {
-        alert("Sorry, this feature is not implemented yet.");
-        /*
         if (confirm("Are you sure? The current annotation will be discarded.")) {
-            this.removeTemplate(id, () => {
-                addon.port.emit("template:remove", id);
-            });
+            this.actions.stopAnnotation();
         }
-        */
     },
 
     onHelp: function () {

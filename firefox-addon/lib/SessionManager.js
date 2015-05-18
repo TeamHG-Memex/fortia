@@ -43,14 +43,31 @@ SessionManager.prototype = {
 
     toggleForCurrentTab: function () {
         var tab = tabs.activeTab;
-        if (this.hasSession(tab.id)) {
-            this.sessions[tab.id].destroy();
-            delete this.sessions[tab.id];
-            this.setButtonHighlighted(false);
+        this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab);
+    },
+
+    activateAt: function (tab) {
+        if (this.hasSession(tab.id)){
+            console.log("SessionManager.activateAt: already activated", tab.id);
         }
-        else {
-            this.sessions[tab.id] = new Session(tab);
+        this.sessions[tab.id] = new Session(tab);
+        if (tab.id == tabs.activeTab.id){
             this.setButtonHighlighted(true);
+        }
+
+        this.sessions[tab.id].port.on("stopAnnotation", () => {
+            this.deactivateAt(tab);
+        });
+    },
+
+    deactivateAt: function (tab) {
+        if (!this.hasSession(tab.id)){
+            console.log("SessionManager.deactivateAt: already deactivated", tab.id);
+        }
+        this.sessions[tab.id].destroy();
+        delete this.sessions[tab.id];
+        if (tab.id == tabs.activeTab.id) {
+            this.setButtonHighlighted(false);
         }
     },
 
