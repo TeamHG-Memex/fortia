@@ -48,10 +48,10 @@ import scrapely
 from w3lib.html import replace_tags
 
 
-def crawl(spider_cls, settings):
+def crawl(spider_cls, settings, spider_options):
     """ Run a Scrapy spider. """
     runner = CrawlerProcess(Settings(settings))
-    runner.crawl(spider_cls)
+    runner.crawl(spider_cls, **spider_options)
     runner.start()
 
 
@@ -68,38 +68,31 @@ class Scraper(scrapely.Scraper):
             return cls.fromfile(f)
 
 
-def get_spider_cls(args):
-    """ Build a Spider class based on command-line arguments """
+class FortiaSpider(scrapy.Spider):
+    name = 'fortia'
 
-    required = args['--required']
-    url = args['<url>']
+    # these attributes should be set by caller:
+    scraper = None
+    le = None
+    required_fields = None
+    follow_links = None
 
-    class FortiaSpider(scrapy.Spider):
-        name = 'fortia'
-        start_urls = [url]
-        scraper = Scraper.load(args['<scraper.json>'])
-        le = LinkExtractor(allow=[re.escape(url) + '.*'])
-        required_fields = set() if not required else set(required.split(','))
-        follow_links = args['--depth'] != '0'
+    def parse(self, response):
+        for record in self.scraper.extract(response):
+            cleaned = {k: self.process_value(v[0]) for k, v in record.items()}
+            if not cleaned:
+                continue
+            if not self.required_fields <= set(cleaned.keys()):
+                continue
+            cleaned['_url'] = response.url
+            yield cleaned
 
-        def parse(self, response):
-            for record in self.scraper.extract(response):
-                cleaned = {k: self.process_value(v[0]) for k, v in record.items()}
-                if not cleaned:
-                    continue
-                if not self.required_fields <= set(cleaned.keys()):
-                    continue
-                cleaned['_url'] = response.url
-                yield cleaned
+        if self.follow_links:
+            for link in self.le.extract_links(response):
+                yield scrapy.Request(link.url)
 
-            if self.follow_links:
-                for link in self.le.extract_links(response):
-                    yield scrapy.Request(link.url)
-
-        def process_value(self, value):
-            return " ".join(replace_tags(value).strip().split())
-
-    return FortiaSpider
+    def process_value(self, value):
+        return " ".join(replace_tags(value).strip().split())
 
 
 if __name__ == '__main__':
@@ -112,5 +105,14 @@ if __name__ == '__main__':
         FEED_URI="stdout:",
         FEED_FORMAT=args['--format'],
     )
-    spider_cls = get_spider_cls(args)
-    crawl(spider_cls, settings)
+
+    required = args['--required']
+    url = args['<url>']
+    spider_options = dict(
+        start_urls = [url],
+        scraper = Scraper.load(args['<scraper.json>']),
+        le = LinkExtractor(allow=[re.escape(url) + '.*']),
+        required_fields = set() if not required else set(required.split(',')),
+        follow_links = args['--depth'] != '0',
+    )
+    crawl(FortiaSpider, settings, spider_options)
