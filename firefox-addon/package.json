@@ -8,5 +8,12 @@
   "license": "MIT",
   "version": "0.0.1",
   "icon": "data/icons/portia-64-active.png",
-  "homepage": "https://github.com/TeamHG-Memex/fortia"
+  "homepage": "https://github.com/TeamHG-Memex/fortia",
+  "preferences": [{
+    "name": "fortia-preview-server-url",
+    "title": "Fortia server URL",
+    "description": "URL of Fortia server. It is required to preview the extracted data.",
+    "type": "string",
+    "value": "http://127.0.0.1:5000"
+  }]
 }
