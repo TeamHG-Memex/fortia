@@ -12,8 +12,8 @@ var fortia = new SessionManager();
 
 // for debugging - go to some initial url
 // tabs.activeTab.url = "http://stackoverflow.com/questions/29268299/difference-between-oracle-client-and-odac";
-// tabs.activeTab.url = "http://127.0.0.1:5000";
-tabs.activeTab.url = "https://github.com/fivethirtyeight/data";
+tabs.activeTab.url = "http://127.0.0.1:5000";
+//tabs.activeTab.url = "https://github.com/fivethirtyeight/data";
 
 
 // handle fortia: links

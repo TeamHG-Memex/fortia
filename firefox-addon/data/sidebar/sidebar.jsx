@@ -12,7 +12,7 @@ if (addon.mocked){
         key: "-3-2",
         fields: [
             {name: "title", prevName: "title", editing: false, valid: true, id: "asdfhg34"},
-            {name: "score", prevName: "score", editing: false, valid: true, id: "876hlkjb"},
+            {name: "score", prevName: "score", editing: true, valid: true, id: "876hlkjb"},
         ]
     };
 }
@@ -41,6 +41,10 @@ SidebarActions.prototype = {
 
     stopAnnotation: function () {
         this.emit("stopAnnotation");
+    },
+
+    showPreview: function () {
+        this.emit("showPreview");
     },
 
     notifyHovered: function (fieldId) {
@@ -132,34 +136,67 @@ var FinishButtons = React.createClass({
     onSaveAs: useProps("onSaveAs"),
     onCancel: useProps("onCancel"),
     onHelp: useProps("onHelp"),
+    onPreview: useProps("onPreview"),
+
+    componentDidMount: function(){
+        this.getTooltipElements().tooltip();
+    },
+
+    componentWillUnmount: function(){
+        this.getTooltipElements().tooltip("destroy");
+    },
+
+    getTooltipElements: function () {
+        return $(this.refs.smallButtonsRow.getDOMNode()).find("a[role='button']");
+    },
+
 
     render: function () {
         return (
-            <BootstrapButtonRow>
-                <a role="button" className="btn btn-info col-xs-9">Finish</a>
-                <div>
-                    <a role="button" className="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                        <Icon name="menu-hamburger"/>
-                    </a>
-                    <ul className="dropdown-menu dropdown-menu-right" role="menu">
-                        <li>
-                            <a href="#" onClick={this.onSaveAs}>
-                                <Icon name="save"/>&nbsp; Save to a local file..
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" onClick={this.onCancel}>
-                                <Icon name="remove"/>&nbsp; Cancel annotation
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" onClick={this.onHelp}>
-                                <Icon name="book"/>&nbsp; Help
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </BootstrapButtonRow>
+            <div>
+                <BootstrapButtonRow>
+                    <a role="button" className="btn btn-primary col-xs-12">Finish</a>
+                </BootstrapButtonRow>
+                <BootstrapButtonRow ref="smallButtonsRow">
+                    <div>
+                        <a role="button" className="btn btn-info col-xs-3"
+                           href="#" onClick={this.onPreview} title="Preview"
+                           data-toggle="tooltip" data-placement="bottom">
+                            <Icon name="play"/>
+                        </a>
+                        <a role="button" className="btn btn-info col-xs-3"
+                            href="#" onClick={this.onSaveAs} title="Save to a local file"
+                            data-toggle="tooltip" data-placement="bottom">
+                            <Icon name="save"/>
+                        </a>
+                        <a role="button" className="btn btn-info col-xs-3 disabled" title="TODO"
+                            data-toggle="tooltip" data-placement="bottom">
+                            <Icon name="question-sign"/>
+                        </a>
+                        <a role="button" className="btn btn-info dropdown-toggle col-xs-3" title="More options"
+                             data-toggle="dropdown" data-placement="top">
+                            <Icon name="menu-hamburger"/>
+                        </a>
+                        <ul className="dropdown-menu dropdown-menu-right" role="menu">
+                            <li>
+                                <a href="#" onClick={this.onSaveAs}>
+                                    <Icon name="save"/>&nbsp; Save to a local file..
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onClick={this.onCancel}>
+                                    <Icon name="remove"/>&nbsp; Cancel annotation
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" onClick={this.onHelp}>
+                                    <Icon name="book"/>&nbsp; Help
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </BootstrapButtonRow>
+            </div>
         )
     }
 });
@@ -331,6 +368,7 @@ var TemplateEditor = React.createClass({
 
         if (this.props.useFinish){
             var buttons = <FinishButtons
+                               onPreview={this.props.onPreview}
                                onSaveAs={this.props.onSaveAs}
                                onCancel={this.props.onCancelAnnotation}
                                onHelp={this.props.onHelp} />;
@@ -344,8 +382,9 @@ var TemplateEditor = React.createClass({
 
         return (
             <div className="container">
-                <BootstrapListGroup>{items}</BootstrapListGroup>
                 {buttons}
+                <div>&nbsp;</div>
+                <BootstrapListGroup>{items}</BootstrapListGroup>
             </div>
         );
     }
@@ -354,12 +393,40 @@ var TemplateEditor = React.createClass({
 
 var FortiaHeader = React.createClass({
     render: function () {
+        var browseClass = "btn btn-info";
+        /*
+        var annClass = "btn btn-success";
+        if (this.props.mode == "annotate"){
+            annClass += ' active';
+        }
+        else if (this.props.mode == "browse") {
+            browseClass += ' active';
+        }
+        */
+
         return (
             <nav className="navbar navbar-default navbar-static-top">
                 <div className="container">
                     <div className="navbar-header pull-left">
                         <span className="navbar-brand">Fortia</span>
                     </div>
+                    {/*
+                    <div className="navbar-header pull-right">
+                        <ul className="nav pull-left">
+                            <li className="pull-right">
+                                <div className="btn-group btn-group-sm" role="group"
+                                     style={{'marginTop': 7, 'marginRight': 15}}>
+                                        <a role="button" type="button" className={annClass} onClick={this.onAnnotateClick} title="Annotate">
+                                        <span className="glyphicon glyphicon-record"></span>
+                                        </a>
+                                    <a role="button" type="button" className={browseClass} onClick={this.onBrowseClick} title="Preview">
+                                        <Icon name="play"/>
+                                    </a>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    */}
                 </div>
             </nav>
         )
@@ -427,6 +494,10 @@ var Sidebar = React.createClass({
         }
     },
 
+    onPreview: function () {
+        this.actions.showPreview();
+    },
+
     onHelp: function () {
         alert("Sorry, help is not ready yet.")
     },
@@ -468,9 +539,10 @@ var Sidebar = React.createClass({
                                 onFieldRemove={onFieldRemove}
                                 showEditorByIndex={this.showEditorByIndex}
                                 onCancelAnnotation={this.onCancelAnnotation}
+                                onPreview={this.onPreview}
                                 onSaveAs={this.onSaveAs}
                                 onHelp={this.onHelp}
-                                useFinish={false}
+                                useFinish={true}
                 />
             </div>
         );

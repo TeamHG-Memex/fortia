@@ -9,8 +9,15 @@ from __future__ import absolute_import
 from urllib import urlencode
 
 from docopt import docopt
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
+from w3lib.html import replace_tags
+import scrapely
+
 app = Flask(__name__)
+
+
+def _cleanup(value):
+    return " ".join(replace_tags(value).strip().split())
 
 
 @app.route("/store")
@@ -29,6 +36,30 @@ def index():
     query = urlencode({'goto': example_url})
     fortia_url = "fortia:http://{host}:{port}?{query}".format(host=host, port=port, query=query)
     return render_template("index.html", fortia_url=fortia_url)
+
+
+@app.route("/extract", methods=['POST'])
+def extract():
+    """
+    Extract data from a HTML page using Scrapely templates.
+
+    This endpoint accepts a JSON-encoded object with the following data
+    (all fields are required)::
+
+        {
+            "templates": [... an array of scrapely templates...],
+            "html": "<HTML of a page to extract data from>",
+            "url": "<url of a page HTML data is obtained from>"
+        }
+
+    """
+    data = request.get_json(force=True)
+    templates = [scrapely.HtmlPage(**x) for x in data['templates']]
+    target = scrapely.HtmlPage(url=data['url'], body=data['html'])
+    scraper = scrapely.Scraper(templates)
+    return jsonify(
+        [_cleanup(v) for v in scraper.scrape_page(target)]
+    )
 
 
 if __name__ == '__main__':

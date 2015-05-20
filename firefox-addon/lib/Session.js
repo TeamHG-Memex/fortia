@@ -3,6 +3,7 @@ Annotation session.
 */
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
+var { Panel } = require("sdk/panel");
 var { EventTarget } = require("sdk/event/target");
 var { emit } = require('sdk/event/core');
 
@@ -62,6 +63,9 @@ function Session(tab) {
                 case "saveTemplateAs":
                     this.saveTemplateAs();
                     break;
+                case "showPreview":
+                    this.showPreview();
+                    break;
                 case "stopAnnotation":
                     emit(this.port, "stopAnnotation");
                     break;
@@ -107,9 +111,32 @@ Session.prototype = {
     },
 
     saveTemplateAs: function () {
-        console.log("add-on script got SaveAs request");
+        console.log("add-on script got saveTemplateAs request");
         this.annotator().getTemplate((html) => {
             saveTemplateToFile(html, this.tab.url);
+        });
+    },
+
+    showPreview: function () {
+        console.log("add-on script got showPreview request");
+        this.annotator().getTemplate((html) => {
+            //var templates = getScrapelyTemplates(html, this.tab.url);
+            var panel = Panel({
+                position: {
+                    bottom: 15,
+                    right: 15,
+                    left: 15
+                },
+                height: 200,
+                contentURL: "./preview-panel/preview-panel.html"
+            });
+            panel.port.on("ready", () => {
+                panel.port.emit("data", {"field1": "test1", "field2": "test2"});
+            });
+            panel.port.on("close", () => {
+                panel.destroy();
+            });
+            panel.show();
         });
     },
 
@@ -139,19 +166,26 @@ Session.prototype = {
     }
 };
 
-
-/* Ask user where to save the template and save it. */
-var nextSuggestedIndex = 0;
-var saveTemplateToFile = function (html, url) {
-    var filename = "scraper-" + nextSuggestedIndex + ".json";
-    var pageData = {
+/* cobvert HTML data to Scrapely template format */
+var getPageData = function (html, url) {
+    return {
         url: url,
         headers: [],
         body: html,
         page_id: null,
         encoding: 'utf-8'
     };
-    var data = JSON.stringify({templates: [pageData]});
+};
+
+var getScrapelyTemplates = function (html, url) {
+    return {templates: [getPageData(html, url)]};
+};
+
+/* Ask user where to save the template and save it. */
+var nextSuggestedIndex = 0;
+var saveTemplateToFile = function (html, url) {
+    var filename = "scraper-" + nextSuggestedIndex + ".json";
+    var data = JSON.stringify(getScrapelyTemplates(html, url));
     var ok = dialogs.save("Save the template", filename, data);
     if (ok){
         nextSuggestedIndex += 1;
