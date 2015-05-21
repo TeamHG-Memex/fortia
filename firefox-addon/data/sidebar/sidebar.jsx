@@ -137,6 +137,7 @@ var FinishButtons = React.createClass({
     onCancel: useProps("onCancel"),
     onHelp: useProps("onHelp"),
     onPreview: useProps("onPreview"),
+    onFinish: useProps("onFinish"),
 
     componentDidMount: function(){
         this.getTooltipElements().tooltip();
@@ -150,15 +151,21 @@ var FinishButtons = React.createClass({
         return $(this.refs.smallButtonsRow.getDOMNode()).find("a[role='button']");
     },
 
-
     render: function () {
         return (
             <div>
+                {/*
                 <BootstrapButtonRow>
                     <a role="button" className="btn btn-primary col-xs-12">Finish</a>
                 </BootstrapButtonRow>
+                */}
                 <BootstrapButtonRow ref="smallButtonsRow">
                     <div>
+                        <a role="button" className="btn btn-primary col-xs-3"
+                           href="#" onClick={this.onFinish} title="Finish"
+                           data-toggle="tooltip" data-placement="bottom">
+                            <Icon name="ok"/>
+                        </a>
                         <a role="button" className="btn btn-info col-xs-3"
                            href="#" onClick={this.onPreview} title="Preview"
                            data-toggle="tooltip" data-placement="bottom">
@@ -169,10 +176,12 @@ var FinishButtons = React.createClass({
                             data-toggle="tooltip" data-placement="bottom">
                             <Icon name="save"/>
                         </a>
+                        {/*
                         <a role="button" className="btn btn-info col-xs-3 disabled" title="TODO"
                             data-toggle="tooltip" data-placement="bottom">
                             <Icon name="question-sign"/>
                         </a>
+                        */}
                         <a role="button" className="btn btn-info dropdown-toggle col-xs-3" title="More options"
                              data-toggle="dropdown" data-placement="top">
                             <Icon name="menu-hamburger"/>
