@@ -5,6 +5,9 @@
  * React JSONTree
  * http://eskimospy.com/stuff/react/json/
  * Copyright 2014, David Vedder
+ *
+ * Changed by Mikhail Korobov
+ *
  * MIT Licence
     =========================
  */
@@ -45,9 +48,8 @@ var grabNode = function (key, value) {
  * @return String The object's type
  */
 var objType  = function (obj) {
-    var className = Object.prototype.toString.call(obj).slice(8, -1);
-    return className;
-}
+    return Object.prototype.toString.call(obj).slice(8, -1);
+};
 
 /**
  * Mixin for stopping events from propagating and collapsing our tree all
@@ -80,7 +82,7 @@ var ExpandedStateHandlerMixin = {
     componentWillReceiveProps: function () {
         // resets our caches and flags we need to build child nodes again
         this.renderedChildren = [];
-        this.itemString = false
+        this.itemString = false;
         this.needsChildNodes= true;
     }
 };
@@ -165,7 +167,7 @@ var JSONObjectNode = React.createClass({
         if (this.state.expanded && this.needsChildNodes) {
             var obj = this.props.data;
             var childNodes = [];
-            for (k in obj) {
+            for (var k in obj) {
                 if (obj.hasOwnProperty(k)) {
                     childNodes.push( grabNode(k, obj[k]));
                 }
@@ -184,7 +186,7 @@ var JSONObjectNode = React.createClass({
             var obj = this.props.data;
             var len = 0;
             var lenWord = ' Items';
-            for (k in obj) {
+            for (var k in obj) {
                 if (obj.hasOwnProperty(k)) {
                     len += 1;
                 }
@@ -214,15 +216,25 @@ var JSONObjectNode = React.createClass({
         };
         var cls = "object parentNode";
         cls += (this.state.expanded) ? " expanded" : '';
-        return (
-            <li className={cls} onClick={this.handleClick}>
-                <label>{this.props.keyName}:</label>
-                <span>{this.getItemString()}</span>
-                <ul style={childListStyle}>
-                    { this.getChildNodes() }
-                </ul>
-            </li>
+
+        var childrenList = (
+            <ul style={childListStyle}>
+                { this.getChildNodes() }
+            </ul>
         );
+        if (this.props.showRoot) {
+            return (
+                <li className={cls} onClick={this.handleClick}>
+                    <label>{this.props.keyName}:</label>
+                    <span>{this.getItemString()}</span>
+                    {childrenList}
+                </li>
+            );
+        }
+        else {
+            return childrenList;
+        }
+
     }
 });
 
@@ -290,54 +302,20 @@ var JSONBooleanNode = React.createClass({
 
 /**
  * JSONTree component. This is the 'viewer' base. Pass it a `data` prop and it 
- * will render that data, or pass it a `source` URL prop and it will make 
- * an XMLHttpRequest for said URL and render that when it loads the data.
- * 
- * You can load new data into it by either changing the `data` prop or calling
- * `loadDataFromURL()` on an instance.
+ * will render that data.
  *
- * The first node it draws will be expanded by default. 
+ * The first node it draws will be expanded by default.
  */
 var JSONTree = React.createClass({
-    getDefaultProps: function () {
-        return {source: false};
-    },
-    /**
-     * Will try and load data from the given URL and display it
-     */
-    loadDataFromURL: function (url) {
-        var self = this;
-        request = new XMLHttpRequest();
-        request.open('GET', url, true);
-        request.onload = function() {
-            if (request.status >= 200 && request.status < 400){
-                jsonData = JSON.parse(request.responseText);
-                self.setProps({
-                    data: jsonData
-                });
-            } else {
-                console.error("OH NO! Your request was bad.");
-            }
-        };
-        request.onerror = function() {
-            console.error("Connection error");
-        };
-        request.send();
-    },
-    componentDidMount: function() {
-        if (this.props.source) {
-            this.loadDataFromURL(this.props.source);
-        }
-    },
     render: function() {
         var nodeType = objType(this.props.data);
         var rootNode;
         if (nodeType === 'Object') {
-            rootNode = <JSONObjectNode data={this.props.data} keyName="(root)" initialExpanded={true} />
+            rootNode = <JSONObjectNode data={this.props.data} keyName="(root)" initialExpanded={true} showRoot={false} />
         } else if (nodeType === 'Array') {
             rootNode = <JSONArrayNode data={this.props.data} initialExpanded={true} keyName="(root)" />
         } else {
-            console.error("How did you manage that?");
+            console.error("How did you manage that?", nodeType);
         }
         return (
             <ul className="json_tree">
