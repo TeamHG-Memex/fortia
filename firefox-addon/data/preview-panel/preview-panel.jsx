@@ -11,8 +11,8 @@ var CloseButton = React.createClass({
     render: function () {
         var style = {
             position: "fixed",
-            right: "0px",
-            top: "0px",
+            left: "-15px",
+            top: "-15px",
             cursor: "pointer"
         };
         return (
