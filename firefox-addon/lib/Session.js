@@ -131,7 +131,7 @@ Session.prototype = {
                 contentURL: "./preview-panel/preview-panel.html"
             });
             panel.port.on("ready", () => {
-                panel.port.emit("data", {"field1": "test1", "field2": "test2"});
+                panel.port.emit("data", {"field1": "test1", "field2": ["test2", "test3"]});
             });
             panel.port.on("close", () => {
                 panel.destroy();

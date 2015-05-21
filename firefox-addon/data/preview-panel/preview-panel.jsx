@@ -2,6 +2,11 @@
 Panel for previewing of the extracted data.
 */
 
+var initialData = null;
+if (addon.mocked) {
+    initialData = {"field1": "test1", "field2": ["test2", "test3"]};
+}
+
 var CloseButton = React.createClass({
     render: function () {
         var style = {
@@ -21,7 +26,7 @@ var CloseButton = React.createClass({
 
 var Preview = React.createClass({
     getInitialState: function () {
-        return {data: undefined};
+        return {data: initialData};
     },
 
     componentDidMount: function () {
