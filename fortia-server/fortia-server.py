@@ -57,9 +57,12 @@ def extract():
     templates = [scrapely.HtmlPage(**x) for x in data['templates']]
     target = scrapely.HtmlPage(url=data['url'], body=data['html'])
     scraper = scrapely.Scraper(templates)
-    return jsonify(
-        [_cleanup(v) for v in scraper.scrape_page(target)]
-    )
+
+    res = [
+        {k: _cleanup(v[0]) for k, v in record.items()}
+        for record in scraper.scrape_page(target)
+    ]
+    return jsonify({'status': 'ok', 'result': res})
 
 
 if __name__ == '__main__':

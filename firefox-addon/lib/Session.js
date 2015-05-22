@@ -4,6 +4,7 @@ Annotation session.
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
 var { Panel } = require("sdk/panel");
+var { Request } = require("sdk/request");
 var { EventTarget } = require("sdk/event/target");
 var { emit } = require('sdk/event/core');
 
@@ -30,8 +31,9 @@ TemplateActions.prototype = {
 /*
 Annotation session object. It glues a sidebar and an in-page annotator.
 */
-function Session(tab) {
+function Session(tab, fortiaServerUrl) {
     this.tab = tab;
+    this.fortiaServerUrl = fortiaServerUrl;
     this.destroyed = false;
     this.actions = new TemplateActions(this.tab.id);
     this.port = new EventTarget();
@@ -120,23 +122,39 @@ Session.prototype = {
     showPreview: function () {
         console.log("add-on script got showPreview request");
         this.annotator().getTemplate((html) => {
-            //var templates = getScrapelyTemplates(html, this.tab.url);
-            var panel = Panel({
-                position: {
-                    bottom: 15,
-                    right: 15,
-                    left: 15
-                },
-                height: 200,
-                contentURL: "./preview-panel/preview-panel.html"
+            var templates = getScrapelyTemplates(html, this.tab.url);
+            var url = this.fortiaServerUrl + "extract";
+            var content = {
+                url: this.tab.url,
+                html: html, // FIXME: strip scrapely annotations
+                templates: templates
+            };
+            console.log("Session.showPreview: sending request to " + url);
+
+            var req = Request({
+                url: url,
+                contentType: 'application/json',
+                content: JSON.stringify(content),
+                onComplete: (resp) => {
+                    console.log("Session.showPreview: got response", resp.status, resp.text);
+                    if (resp.status == 200) {
+                        var panel = Panel({
+                            position: {bottom: 15, right: 15, left: 15},
+                            height: 200,
+                            contentURL: "./preview-panel/preview-panel.html"
+                        });
+                        panel.port.on("ready", () => {
+                            panel.port.emit("data", resp.json.result);
+                        });
+                        panel.port.on("close", () => { panel.destroy() });
+                        panel.show();
+                    }
+                    else {
+                        console.error("Session.showPreview: error");
+                    }
+                }
             });
-            panel.port.on("ready", () => {
-                panel.port.emit("data", {"field1": "test1", "field2": ["test2", "test3"]});
-            });
-            panel.port.on("close", () => {
-                panel.destroy();
-            });
-            panel.show();
+            req.post();
         });
     },
 
@@ -178,14 +196,14 @@ var getPageData = function (html, url) {
 };
 
 var getScrapelyTemplates = function (html, url) {
-    return {templates: [getPageData(html, url)]};
+    return [getPageData(html, url)];
 };
 
 /* Ask user where to save the template and save it. */
 var nextSuggestedIndex = 0;
 var saveTemplateToFile = function (html, url) {
     var filename = "scraper-" + nextSuggestedIndex + ".json";
-    var data = JSON.stringify(getScrapelyTemplates(html, url));
+    var data = JSON.stringify({templates: getScrapelyTemplates(html, url)});
     var ok = dialogs.save("Save the template", filename, data);
     if (ok){
         nextSuggestedIndex += 1;

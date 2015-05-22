@@ -24,9 +24,9 @@ var grabNode = function (key, value) {
     var theNode;
     var aKey = key + Date.now();
     if (nodeType === 'Object') {
-        theNode = <JSONObjectNode data={value} keyName={key} key={aKey}  />
+        theNode = <JSONObjectNode data={value} keyName={key} key={aKey} showRoot={true} />
     } else if (nodeType === 'Array') {
-        theNode = <JSONArrayNode data={value}  keyName={key} key={aKey} />
+        theNode = <JSONArrayNode data={value}  keyName={key} key={aKey} showRoot={true} />
     } else if (nodeType === 'String') {
         theNode = <JSONStringNode keyName={key} value={value} key={aKey} />
     } else if (nodeType === 'Number') {
@@ -67,7 +67,7 @@ var SquashClickEventMixin = {
  */
 var ExpandedStateHandlerMixin = {
     getDefaultProps: function () {
-        return {data:[], initialExpanded: false};
+        return {data:[], initialExpanded: true};
     },
     getInitialState: function () {
         return {
@@ -140,13 +140,17 @@ var JSONArrayNode = React.createClass({
         };
         var cls = "array parentNode";
         cls += (this.state.expanded) ? " expanded" : '';
+
+        var childList = <ol style={childListStyle}>{childNodes}</ol>;
+
+        if (!this.props.showRoot){
+            return childList;
+        }
         return (
             <li className={cls} onClick={this.handleClick}>
                 <label>{this.props.keyName}:</label>
                 <span>{this.getItemString()}</span>
-                <ol style={childListStyle}>
-                    {childNodes}
-                </ol>
+                {childList}
             </li>
         );
     }
@@ -217,24 +221,21 @@ var JSONObjectNode = React.createClass({
         var cls = "object parentNode";
         cls += (this.state.expanded) ? " expanded" : '';
 
-        var childrenList = (
+        var childList = (
             <ul style={childListStyle}>
                 { this.getChildNodes() }
             </ul>
         );
-        if (this.props.showRoot) {
-            return (
-                <li className={cls} onClick={this.handleClick}>
-                    <label>{this.props.keyName}:</label>
-                    <span>{this.getItemString()}</span>
-                    {childrenList}
-                </li>
-            );
+        if (!this.props.showRoot){
+            return childList;
         }
-        else {
-            return childrenList;
-        }
-
+        return (
+            <li className={cls} onClick={this.handleClick}>
+                <label>{this.props.keyName}:</label>
+                <span>{this.getItemString()}</span>
+                {childList}
+            </li>
+        );
     }
 });
 
@@ -313,7 +314,7 @@ var JSONTree = React.createClass({
         if (nodeType === 'Object') {
             rootNode = <JSONObjectNode data={this.props.data} keyName="(root)" initialExpanded={true} showRoot={false} />
         } else if (nodeType === 'Array') {
-            rootNode = <JSONArrayNode data={this.props.data} initialExpanded={true} keyName="(root)" />
+            rootNode = <JSONArrayNode data={this.props.data} initialExpanded={true} keyName="(root)" showRoot={false}/>
         } else {
             console.error("How did you manage that?", nodeType);
         }

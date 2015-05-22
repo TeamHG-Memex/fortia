@@ -4,7 +4,7 @@ Panel for previewing of the extracted data.
 
 var initialData = null;
 if (addon.mocked) {
-    initialData = {"field1": "test1", "field2": ["test2", "test3"]};
+    initialData = [{"field1": "test1", "field2": ["test2", "test3"]}];
 }
 
 var CloseButton = React.createClass({
@@ -44,6 +44,9 @@ var Preview = React.createClass({
         var content = <h2>Nothing to show</h2>;
         var data = this.state.data;
         if (data){
+            if (data.length == 1) {
+                data = data[0];
+            }
             content = <JSONTree data={data} />;
         }
         return <div>

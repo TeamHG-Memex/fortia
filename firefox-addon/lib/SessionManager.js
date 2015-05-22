@@ -46,11 +46,11 @@ SessionManager.prototype = {
         this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab);
     },
 
-    activateAt: function (tab) {
+    activateAt: function (tab, fortiaServerUrl) {
         if (this.hasSession(tab.id)){
             console.log("SessionManager.activateAt: already activated", tab.id);
         }
-        this.sessions[tab.id] = new Session(tab);
+        this.sessions[tab.id] = new Session(tab, fortiaServerUrl);
         if (tab.id == tabs.activeTab.id){
             this.setButtonHighlighted(true);
         }

@@ -21,5 +21,5 @@ protocol.events.on("newChannel", function (parsed) {
     // Firefox redirects to the new URL automatically.
     // TODO: wait for redirect before displaying the annotator.
     console.log("newChannel", parsed);
-    fortia.toggleButton.click();
+    fortia.activateAt(tabs.activeTab, parsed.server);
 });

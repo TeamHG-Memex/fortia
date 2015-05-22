@@ -130,7 +130,6 @@ var BootstrapButtonRow = React.createClass({
 });
 
 
-
 /* "Finish" button with a dropdown */
 var FinishButtons = React.createClass({
     onSaveAs: useProps("onSaveAs"),

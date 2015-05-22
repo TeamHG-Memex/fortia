@@ -12,6 +12,7 @@ Example:
 annotation results.
 
 <requested url> is an address of a web page to annotate.
+It should be urlencoded.
 
 */
 
@@ -34,7 +35,11 @@ exports.events = target;
 /* Extract 'server' and 'goto' parts from fortia: URLs */
 function parseFortiaUrl(spec){
     var url = URL(/^fortia:(.*)/.exec(spec)[1]);
-    var server = url.scheme + "://" + url.host + url.pathname;
+    var server = url.scheme + "://" + url.host;
+    if (url.port){
+        server += ":" + url.port;
+    }
+    server += url.pathname;
     var query = querystring.parse(url.search.slice(1));
     return {server: server, goto: query.goto};
 }
