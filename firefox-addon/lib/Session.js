@@ -4,11 +4,12 @@ Annotation session.
 var ui = require("sdk/ui");
 var tabs = require("sdk/tabs");
 var { Panel } = require("sdk/panel");
-var { Request } = require("sdk/request");
 var { EventTarget } = require("sdk/event/target");
 var { emit } = require('sdk/event/core');
 
 var dialogs = require("dialogs");
+var scrapelyUtils = require("./scrapely_utils.js");
+var { FortiaClient } = require("./FortiaClient.js");
 var { annotators } = require("./TabAnnotator.js");
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
@@ -33,10 +34,10 @@ Annotation session object. It glues a sidebar and an in-page annotator.
 */
 function Session(tab, fortiaServerUrl) {
     this.tab = tab;
-    this.fortiaServerUrl = fortiaServerUrl;
     this.destroyed = false;
     this.actions = new TemplateActions(this.tab.id);
-    this.port = new EventTarget();
+    this.fortiaClient = new FortiaClient(fortiaServerUrl);
+    this.port = EventTarget();
 
     this.sidebarWorker = null;
     this.sidebar = ui.Sidebar({
@@ -122,39 +123,31 @@ Session.prototype = {
     showPreview: function () {
         console.log("add-on script got showPreview request");
         this.annotator().getTemplate((html) => {
-            var templates = getScrapelyTemplates(html, this.tab.url);
-            var url = this.fortiaServerUrl + "extract";
-            var content = {
-                url: this.tab.url,
-                html: html, // FIXME: strip scrapely annotations
-                templates: templates
-            };
-            console.log("Session.showPreview: sending request to " + url);
+            var templates = scrapelyUtils.getScrapelyTemplates(html, this.tab.url);
 
-            var req = Request({
-                url: url,
-                contentType: 'application/json',
-                content: JSON.stringify(content),
-                onComplete: (resp) => {
-                    console.log("Session.showPreview: got response", resp.status, resp.text);
-                    if (resp.status == 200) {
-                        var panel = Panel({
-                            position: {bottom: 15, right: 15, left: 15},
-                            height: 200,
-                            contentURL: "./preview-panel/preview-panel.html"
-                        });
-                        panel.port.on("ready", () => {
-                            panel.port.emit("data", resp.json.result);
-                        });
-                        panel.port.on("close", () => { panel.destroy() });
-                        panel.show();
-                    }
-                    else {
-                        console.error("Session.showPreview: error");
-                    }
+            this.fortiaClient.request({
+                endpoint: "extract",
+                content: {
+                    url: this.tab.url,
+                    html: html, // FIXME: strip scrapely annotations
+                    templates: templates
+                },
+                onSuccess: (data) => {
+                    var panel = Panel({
+                        position: {bottom: 15, right: 15, left: 15},
+                        height: 200,
+                        contentURL: "./preview-panel/preview-panel.html"
+                    });
+                    panel.port.on("ready", () => {
+                        panel.port.emit("data", data.result);
+                    });
+                    panel.port.on("close", () => { panel.destroy() });
+                    panel.show();
+                },
+                onFailure: () => {
+                    console.error("Session.showPreview: error");
                 }
             });
-            req.post();
         });
     },
 
@@ -184,26 +177,12 @@ Session.prototype = {
     }
 };
 
-/* cobvert HTML data to Scrapely template format */
-var getPageData = function (html, url) {
-    return {
-        url: url,
-        headers: [],
-        body: html,
-        page_id: null,
-        encoding: 'utf-8'
-    };
-};
-
-var getScrapelyTemplates = function (html, url) {
-    return [getPageData(html, url)];
-};
 
 /* Ask user where to save the template and save it. */
 var nextSuggestedIndex = 0;
 var saveTemplateToFile = function (html, url) {
     var filename = "scraper-" + nextSuggestedIndex + ".json";
-    var data = JSON.stringify({templates: getScrapelyTemplates(html, url)});
+    var data = scrapelyUtils.getScraperJSON(html, url);
     var ok = dialogs.save("Save the template", filename, data);
     if (ok){
         nextSuggestedIndex += 1;
