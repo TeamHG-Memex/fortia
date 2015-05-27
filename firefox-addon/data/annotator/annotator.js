@@ -31,32 +31,44 @@ function Annotator(){
     this.annotations = new DomAnnotations();
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
 
-    self.port.on("fieldCreated", (data) => {
+    this.onFieldCreated = (data) => {
         var elem = $(data.selector);
         this.annotations.add(elem, data.field.name, data.field.id);
-    });
+    };
 
-    self.port.on("fieldRenamed", (data) => {
+    this.onFieldRenamed = (data) => {
         this.annotations.rename(data.fieldId, data.newName);
-    });
+    };
 
-    self.port.on("fieldRemoved", (data) => {
+    this.onFieldRemoved = (data) => {
         this.annotations.removeField(data.fieldId);
-    });
+    };
 
-    self.port.on("highlightField", (data) => {
+    this.onHighlightedField = (data) => {
         this.annotationsDisplay.addSticky(data.fieldId);
-    });
+    };
 
-    self.port.on("unhighlightField", (data) => {
+    this.onUnhighlightedField = (data) => {
         this.annotationsDisplay.removeSticky(data.fieldId);
-    });
+    };
+
+    self.port.on("fieldCreated", this.onFieldCreated);
+    self.port.on("fieldRenamed", this.onFieldRenamed);
+    self.port.on("fieldRemoved", this.onFieldRemoved);
+    self.port.on("highlightField", this.onHighlightedField);
+    self.port.on("unhighlightField", this.onUnhighlightedField);
 
     this.setTool(new FieldAnnotator(this.overlay, this.annotations));
 }
 
 Annotator.prototype = {
     destroy: function () {
+        self.port.removeListener("fieldCreated", this.onFieldCreated);
+        self.port.removeListener("fieldRenamed", this.onFieldRenamed);
+        self.port.removeListener("fieldRemoved", this.onFieldRemoved);
+        self.port.removeListener("highlightField", this.onHighlightedField);
+        self.port.removeListener("unhighlightField", this.onUnhighlightedField);
+
         this.setTool(null);
         this.annotationsDisplay.destroy();
         this.overlay.destroy();
