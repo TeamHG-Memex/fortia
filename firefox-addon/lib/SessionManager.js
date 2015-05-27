@@ -33,6 +33,7 @@ function SessionManager() {
     this.extractButton = ui.ActionButton({
         id: "extract-button",
         label: "Extract",
+        disabled: true,
         icon: "./icons/portia-64.png",
         onClick: (state) => { this.extractFromCurrentTab() }
     });
@@ -93,6 +94,9 @@ SessionManager.prototype = {
     },
 
     deactivateAt: function (tab) {
+        // TODO: we need a better UI
+        this.extractButton.disabled = !ss.storage.stashedTemplates;
+
         if (!this.hasSession(tab.id)){
             this.log("deactivateAt: already deactivated", tab.id);
         }
