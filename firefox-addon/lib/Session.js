@@ -76,7 +76,9 @@ function Session(tab, fortiaServerUrl) {
                     this.showPreview();
                     break;
                 case "finish":
-                    this.storeTemplate();  // TODO
+                    this.storeTemplate(() => {
+                        emit(this.port, "stopAnnotation");
+                    });
                     break;
                 case "stopAnnotation":
                     emit(this.port, "stopAnnotation");
@@ -129,12 +131,13 @@ Session.prototype = {
         });
     },
 
-    storeTemplate: function () {
+    storeTemplate: function (callback) {
         this.log("storeTemplate");
         var url = this.tab.url;
         this.annotator().getTemplate((html) => {
             ss.storage.stashedTemplates = utils.getScrapelyTemplates(html, url);
             this.log("storeTemplate done");
+            callback();
         });
     },
 
