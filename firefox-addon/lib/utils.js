@@ -2,6 +2,15 @@
 A module with functions for working with Scrapely templates.
 */
 
+/* Return a short random string */
+function getRandomString() {
+    var res = Math.random().toString(36).substr(2);
+    while (res.length < 12){
+        res = res + "x";
+    }
+    return res;
+}
+
 /* convert HTML data to Scrapely template format */
 var getPageData = function (html, url) {
     return {
@@ -24,6 +33,7 @@ var getScraperJSON = function (html, url) {
 };
 
 
+exports.getRandomString = getRandomString;
 exports.getPageData = getPageData;
 exports.getScrapelyTemplates = getScrapelyTemplates;
 exports.getScraperJSON = getScraperJSON;

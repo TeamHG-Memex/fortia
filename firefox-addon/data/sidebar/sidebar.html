@@ -8,6 +8,7 @@
     <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
     <link href="sidebar.css" rel="stylesheet">
 
+    <script src="../vendor/debug.js"></script>
     <script src="../vendor/jquery-2.1.3.js"></script>
     <script src="../vendor/react-with-addons-0.13.1.js"></script>
     <script src="../vendor/JSXTransformer-0.13.1.js"></script>
@@ -23,6 +24,10 @@
     <div id="content">
     </div>
 
+    <script>
+        debug.useColors = function(){return addon.mocked};
+        debug.enable('*');
+    </script>
     <script src="addonmock.js"></script>
     <script type="text/jsx;harmony=true" src="sidebar.jsx"></script>
 </body>

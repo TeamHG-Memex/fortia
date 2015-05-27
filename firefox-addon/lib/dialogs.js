@@ -3,6 +3,9 @@ const {Cc, Ci} = require("chrome");
 const {getMostRecentBrowserWindow} = require("sdk/window/utils");
 const fileIO = require("sdk/io/file");
 
+const { Log } = require('./Log.js');
+const log = Log("dialogs");
+
 
 /* Create file with the specified text content. */
 function createFile(path, text){
@@ -39,7 +42,7 @@ function saveDialog(title, defaultFileName, text, extension="json"){
     if (rv == Ci.nsIFilePicker.returnOK || rv == Ci.nsIFilePicker.returnReplace) {
         let ok = createFile(fp.file.path, text);
         if (!ok){
-            console.log("error writing to file", fp.file.path);
+            log("error writing to file", fp.file.path);
         }
         return ok;
     }

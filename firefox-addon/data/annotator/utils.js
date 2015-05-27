@@ -1,4 +1,12 @@
 
+/* Return a short random string */
+function getRandomString() {
+    var res = Math.random().toString(36).substr(2);
+    while (res.length < 12){
+        res = res + "x";
+    }
+    return res;
+}
 
 /* Return an unique CSS selector for the element */
 function getUniquePath($elem) {
@@ -20,3 +28,16 @@ function getUniquePath($elem) {
     }
     return path;
 }
+
+/* Log object */
+function Log(name) {
+    return debug("in-page: " + name);
+}
+
+function InstanceLog(name) {
+    return Log(getRandomString() + ": " + name);
+}
+
+debug.useColors = () => false;
+debug.enable('*');
+

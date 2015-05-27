@@ -3,6 +3,7 @@ Class for displaying current annotations on Canvas overlay.
 */
 
 function AnnotationsDisplay(overlay, annotations) {
+    this.log = InstanceLog("AnnotationsDisplay");
     this.overlay = overlay;
     this.annotations = annotations;
     this.sticky = {};     // field id -> true/false
@@ -13,7 +14,7 @@ function AnnotationsDisplay(overlay, annotations) {
         pad: 4,
         strokeColor: "#59BCDE",
         fillColor: "#66D8FF",
-        fillColorAlpha: 0.2,
+        fillColorAlpha: 0.2
     };
     this.highlightMode = "mouseover";  // other allowed values: "yes", "no"
 
@@ -31,9 +32,11 @@ function AnnotationsDisplay(overlay, annotations) {
 
     this.onResize = () => this.updateAll();
     this.overlay.on("resize", this.onResize);
+    this.log("created");
 }
 
 AnnotationsDisplay.prototype = {
+
     /* clear all outline rects */
     clear: function () {
         this.outlines.forEach((outline) => {outline.destroy()});
@@ -43,7 +46,7 @@ AnnotationsDisplay.prototype = {
     /* highlight annotations for the field `name` permanently */
     addSticky: function (fieldId) {
         if (!this.sticky[fieldId]){
-            console.log("AnnotationsDisplay.addSticky", fieldId);
+            this.log("addSticky", fieldId);
             this.sticky[fieldId] = true;
             this.updateAll();
         }
@@ -53,7 +56,7 @@ AnnotationsDisplay.prototype = {
     /* don't highlight annotations for the field `name` permanently */
     removeSticky: function (fieldId) {
         if (this.sticky[fieldId]){
-            console.log("AnnotationsDisplay.removeSticky", fieldId);
+            this.log("removeSticky", fieldId);
             delete this.sticky[fieldId];
             this.updateAll();
         }
@@ -62,7 +65,7 @@ AnnotationsDisplay.prototype = {
 
     /* Update all elements based on current annotations */
     updateAll: function () {
-        //console.log("AnnotationsDisplay.updateAll");
+        //this.log("updateAll");
         this.clear();
         this.outlines = Array.from(this.annotations.allElements().map((idx, elem) => {
             var fieldId = this.annotations.getId(elem);
@@ -105,5 +108,6 @@ AnnotationsDisplay.prototype = {
         this.annotations.off("renamed", this.onAnnotationRenamed);
         this.annotations.off("removed", this.onAnnotationRemoved);
         this.clear();
+        this.log("destroyed");
     }
 };

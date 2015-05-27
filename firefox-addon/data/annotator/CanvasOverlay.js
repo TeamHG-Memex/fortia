@@ -5,10 +5,12 @@ and provides a fabric.js wrapper.
 Optionally, it can disable all web page interactions.
 */
 function CanvasOverlay(id='scrapely-overlay') {
+    this.log = InstanceLog("CanvasOverlay");
     this.forcedRefreshInterval = 5000;
     this.interactionsBlocked = false;
     this._createCanvas(id);
     this._enableAutoResize();
+    this.log("created");
 }
 
 CanvasOverlay.prototype = {
@@ -56,7 +58,7 @@ CanvasOverlay.prototype = {
 
     /* remove all DOM elements and event handlers */
     destroy: function () {
-        console.log("CanvasOverlay.destroy");
+        this.log("destroy");
         $(window).off('resize', this._resizeToWindow);
         clearInterval(this._resizeTimer);
         this.canvas.dispose();
@@ -65,7 +67,7 @@ CanvasOverlay.prototype = {
 
     /* make canvas handle all mouse click events */
     blockInteractions: function(){
-        console.log("CanvasOverlay.blockInteractions");
+        this.log("blockInteractions");
         this.interactionsBlocked = true;
         $(this.canvasEl).css({
             'pointer-events': 'auto',
@@ -77,7 +79,7 @@ CanvasOverlay.prototype = {
 
     /* allow click events to bypass canvas */
     unblockInteractions: function(){
-        console.log("CanvasOverlay.unblockInteractions");
+        this.log("unblockInteractions");
         this.interactionsBlocked = false;
         $(this.canvasEl).css({
             'pointer-events': 'none',

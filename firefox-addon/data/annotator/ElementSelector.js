@@ -3,6 +3,7 @@ A widget which highlights HTML element under cursor and emits a "click" event
 when the element is clicked.
 */
 function ElementSelector(overlay, outlineOptions) {
+    this.log = InstanceLog("ElementSelector");
     this.currentElement = null;
     this.overlay = overlay;
     this.canvas = overlay.canvas;
@@ -32,7 +33,7 @@ function ElementSelector(overlay, outlineOptions) {
 
     this.onFocus = (event) => {
         var elem = event.target;
-        console.log("onFocus", elem.tagName, getUniquePath($(elem)));
+        this.log("onFocus", elem.tagName, getUniquePath($(elem)));
         $(elem).blur();
         return false;
     };
@@ -40,7 +41,7 @@ function ElementSelector(overlay, outlineOptions) {
     this.onClick = (event) => {
         var elem = event.target;
         this.emit("click", elem);
-        console.log("clicked", elem.tagName, getUniquePath($(elem)));
+        this.log("onClick", elem.tagName, getUniquePath($(elem)));
         event.stopPropagation();
         event.preventDefault();
     };
@@ -58,7 +59,6 @@ ElementSelector.prototype = {
 
     /* remove all DOM elements and event handlers for this ElementSelector */
     destroy: function(){
-        console.log("ElementSelector.destroy");
         this._restoreElement();
         this.overlay.off("resize", this.onOverlayResize);
         $("*").off("mouseover", this.onMouseOver);
@@ -66,6 +66,7 @@ ElementSelector.prototype = {
         $("*").off("focus", this.onFocus);
         this.outline.destroy();
         delete this.outline;
+        this.log("destroyed");
     },
 
     /* restore currently tracked element to its original state */

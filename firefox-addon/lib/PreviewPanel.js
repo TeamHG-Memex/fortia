@@ -1,10 +1,12 @@
 /* Utilities to show a preview of the extracted data */
 var { Panel } = require("sdk/panel");
 var { FortiaClient } = require("./FortiaClient.js");
+var { Log } = require("./Log.js");
 
 
 function PreviewPanel(fortiaClient) {
     this.fortiaClient = fortiaClient;
+    this.log = Log("PreviewPanel");
 }
 
 PreviewPanel.prototype = {
@@ -29,7 +31,7 @@ PreviewPanel.prototype = {
                 panel.show();
             },
             onFailure: () => {
-                console.error("PreviewPanel.show: error");
+                this.log("show: error");
             }
         });
     }

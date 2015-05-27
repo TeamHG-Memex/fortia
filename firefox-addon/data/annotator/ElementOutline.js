@@ -134,7 +134,6 @@ ElementOutline.prototype = {
 
     /* remove all DOM elements and event handlers */
     destroy: function() {
-        //console.log("ElementOutline.destroy");
         this.trackElem(null);
         this.canvas.remove(this.group);
     }

@@ -27,6 +27,7 @@ Main annotator object.
 It creates a canvas overlay and manages annotation tools.
 */
 function Annotator(){
+    this.log = InstanceLog("Annotator");
     this.overlay = new CanvasOverlay();
     this.annotations = new DomAnnotations();
     this.annotationsDisplay = new AnnotationsDisplay(this.overlay, this.annotations);
@@ -59,6 +60,7 @@ function Annotator(){
     self.port.on("unhighlightField", this.onUnhighlightedField);
 
     this.setTool(new FieldAnnotator(this.overlay, this.annotations));
+    this.log("created");
 }
 
 Annotator.prototype = {
@@ -73,6 +75,7 @@ Annotator.prototype = {
         this.annotationsDisplay.destroy();
         this.overlay.destroy();
         this.overlay = null;
+        this.log("destroyed");
     },
 
     setTool: function (tool) {
@@ -103,7 +106,7 @@ Annotator.prototype = {
 
 /* A component for annotating new item fields */
 function FieldAnnotator(overlay, annotations) {
-    console.log("creating FieldAnnotator");
+    this.log = InstanceLog("FieldAnnotator");
     this.overlay = overlay;
     this.selector = new ElementSelector(this.overlay);
 
@@ -113,27 +116,28 @@ function FieldAnnotator(overlay, annotations) {
             // a new annotation for it:
             // 1. mapped attribute is 'content';
             // 2. generate a field name and ask user to change it.
-            console.log("FieldAnnotator.onClick create");
+            this.log("onClick create");
             AnnotatorActions.createField(elem);
             // field is actually created in a fieldCreated event handler
         }
         else {
             // user clicked on the existing annotation - start editing it
-            console.log("FieldAnnotator.onClick edit");
+            this.log("onClick edit");
             var fieldId = annotations.getId(elem);
             AnnotatorActions.startEditing(fieldId);
         }
     };
 
     this.selector.on("click", this.onClick);
+    this.log("created");
 }
 
 
 FieldAnnotator.prototype = {
-
     destroy: function() {
         this.selector.off("click", this.onClick);
         this.selector.destroy();
+        this.log("destroyed");
     }
 };
 
@@ -147,7 +151,7 @@ var annotator = null;
 
 self.port.on("lock", function () {
     if (!document.body){
-        console.log("no document.body");
+        log("no document.body");
         return;
     }
     if (!annotator){
@@ -157,7 +161,7 @@ self.port.on("lock", function () {
 });
 
 self.port.on("activate", function() {
-    console.log("create-annotator");
+    log("create-annotator");
     if (!annotator){
         annotator = new Annotator();
     }
@@ -167,7 +171,7 @@ self.port.on("activate", function() {
 
 self.port.on("deactivate", function () {
     if (annotator){
-        console.log("destroy-annotator");
+        log("destroy-annotator");
         annotator.destroy();
         annotator = null;
     }
@@ -176,3 +180,5 @@ self.port.on("deactivate", function () {
 self.port.on("getTemplate", () => {
     self.port.emit("annotator:template", annotator.getTemplate());
 });
+
+var log = InstanceLog("in-page annotator");

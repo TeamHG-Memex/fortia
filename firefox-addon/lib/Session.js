@@ -9,24 +9,25 @@ var { EventTarget } = require("sdk/event/target");
 var { emit } = require('sdk/event/core');
 
 var dialogs = require("dialogs");
-var scrapelyUtils = require("./scrapely_utils.js");
+var utils = require("./utils.js");
 var { FortiaClient } = require("./FortiaClient.js");
 var { PreviewPanel } = require("./PreviewPanel.js");
 var { annotators } = require("./TabAnnotator.js");
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
-
+var { Log } = require("./Log.js");
 
 /* Action Creator */
 function TemplateActions(templateId) {
     this.templateId = templateId;
+    this.log = Log("TemplateActions: " + templateId);
 }
 
 TemplateActions.prototype = {
     emit: function (action, data) {
         data = data || {};
         data.templateId = this.templateId;
-        console.log("TemplateActions", action, data);
+        this.log(action, data);
         AppDispatcher.dispatch({action: action, data: data});
     }
 };
@@ -36,6 +37,7 @@ Annotation session object. It glues a sidebar and an in-page annotator.
 */
 function Session(tab, fortiaServerUrl) {
     this.tab = tab;
+    this.log = Log("Session: " + this.tab.id);
     this.destroyed = false;
     this.actions = new TemplateActions(this.tab.id);
     this.port = EventTarget();
@@ -58,7 +60,7 @@ function Session(tab, fortiaServerUrl) {
         /* start listening for action requests from the sidebar */
         worker.port.on('SidebarAction', (templateId, action, data) => {
             if (templateId != this.tab.id) {
-                console.error("invalid SidebarAction id", templateId, this.tab.id);
+                this.log("ERROR: invalid SidebarAction id", templateId);
                 return;
             }
             switch (action){
@@ -94,7 +96,7 @@ function Session(tab, fortiaServerUrl) {
 
     this.tab.on("close", () => {
         this.destroy();
-        console.log("tab is closed, session is stopped");
+        this.log("tab is closed, session is stopped");
     });
 
     this.activate();
@@ -104,7 +106,7 @@ function Session(tab, fortiaServerUrl) {
         if (templateId != this.tab.id) {
             return;
         }
-        console.log("Session.onDataChanged", this.tab.id);
+        this.log("onDataChanged");
         this._sendToWorker("template:changed", template);
     };
     TemplateStore.on("changed", this.onDataChanged);
@@ -113,7 +115,7 @@ function Session(tab, fortiaServerUrl) {
 Session.prototype = {
     _sendToWorker: function () {
         if (!this.sidebarWorker){
-            console.error("Session " + this.tab.id + ": no sidebarWorker");
+            this.log("no sidebarWorker");
             return false;
         }
         this.sidebarWorker.port.emit.apply(this, arguments);
@@ -121,26 +123,26 @@ Session.prototype = {
     },
 
     saveTemplateAs: function () {
-        console.log("add-on script got saveTemplateAs request");
+        this.log("add-on script got saveTemplateAs request");
         this.annotator().getTemplate((html) => {
             saveTemplateToFile(html, this.tab.url);
         });
     },
 
     storeTemplate: function () {
-        console.log("add-on script is storing the current template");
+        this.log("add-on script is storing the current template");
         var url = this.tab.url;
         this.annotator().getTemplate((html) => {
-            ss.storage.stashedTemplates = scrapelyUtils.getScrapelyTemplates(html, url);
-            console.log("add-on script saved the current template to a temporary location");
+            ss.storage.stashedTemplates = utils.getScrapelyTemplates(html, url);
+            this.log("add-on script saved the current template to a temporary location");
         });
     },
 
     showPreview: function () {
-        console.log("add-on script got showPreview request");
+        this.log("add-on script got showPreview request");
         var url = this.tab.url;
         this.annotator().getTemplate((html) => {
-            var templates = scrapelyUtils.getScrapelyTemplates(html, url);
+            var templates = utils.getScrapelyTemplates(html, url);
             // FIXME: strip scrapely annotations from html
             this.preview.show(html, url, templates);
         });
@@ -153,12 +155,13 @@ Session.prototype = {
     activate: function () {
         annotators.activateFor(this.tab);
         this.sidebar.show();
-        console.log("session is activated", this.tab.id);
+        this.log("activated");
     },
 
     deactivate: function () {
         annotators.deactivateFor(this.tab);
         this.sidebar.hide();
+        this.log("deactivated");
     },
 
     destroy: function () {
@@ -168,7 +171,7 @@ Session.prototype = {
         this.sidebar.dispose();
         this.destroyed = true;
         this.tab.reload();
-        console.log("session is destroyed");
+        this.log("destroyed");
     }
 };
 
@@ -177,7 +180,7 @@ Session.prototype = {
 var nextSuggestedIndex = 0;
 var saveTemplateToFile = function (html, url) {
     var filename = "scraper-" + nextSuggestedIndex + ".json";
-    var data = scrapelyUtils.getScraperJSON(html, url);
+    var data = utils.getScraperJSON(html, url);
     var ok = dialogs.save("Save the template", filename, data);
     if (ok){
         nextSuggestedIndex += 1;

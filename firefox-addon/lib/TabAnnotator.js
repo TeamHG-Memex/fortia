@@ -3,18 +3,21 @@ var ui = require("sdk/ui");
 
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
+var { Log } = require("./Log.js");
 
 
 /*
 Wrapper for worker Annotator object (for a script injected into a page).
 */
 function TabAnnotator(tab){
-    console.log("creating TabAnnotator for ", tab.id, tab.url);
     this.tab = tab;
+    this.log = Log("TabAnnotator: " + tab.id);
+    this.log("creating for", tab.url);
     this.scripts = [
         "./vendor/jquery-2.1.3.js",
         "./vendor/fabric-1.4.0.js",
         "./vendor/minivents.js",
+        "./vendor/debug.js",
 
         "./annotator/utils.js",
         "./annotator/ElementOutline.js",
@@ -31,8 +34,8 @@ function TabAnnotator(tab){
         if (tab.url.startsWith("about:")){
             return;
         }
-        console.log("TabAnnotator: tab.ready", tab.id);
-        this._injectScripts();
+        this.log("tab.ready");
+        this.injectScripts();
         this.lock();
     });
 
@@ -40,11 +43,11 @@ function TabAnnotator(tab){
         if (tab.url.startsWith("about:")){
             return;
         }
-        console.log("TabAnnotator: tab.pageshow", tab.id);
+        this.log("tab.pageshow");
         this.update();
     });
 
-    this._injectScripts();
+    this.injectScripts();
     this._forwardEventToWorker("fieldCreated");
     this._forwardEventToWorker("fieldRenamed");
     this._forwardEventToWorker("fieldRemoved");
@@ -52,7 +55,7 @@ function TabAnnotator(tab){
 
 TabAnnotator.prototype = {
     lock: function(){
-        console.log("lock", this.worker.tab.id);
+        this.log("lock", this.worker.tab.id);
         if (!this.active) {
             return;
         }
@@ -61,11 +64,11 @@ TabAnnotator.prototype = {
 
     update: function(){
         if (this.active) {
-            console.log("TabAnnotator.update: activate", this.worker.tab.id);
+            this.log("update: activate", this.worker.tab.id);
             this.worker.port.emit("activate");
         }
         else {
-            console.log("TabAnnotator.update: deactivate", this.worker.tab.id);
+            this.log("update: deactivate", this.worker.tab.id);
             this.worker.port.emit("deactivate");
         }
     },
@@ -105,25 +108,25 @@ TabAnnotator.prototype = {
         this.worker.port.emit("unhighlightField", fieldId);
     },
 
-    _injectScripts: function(){
+    injectScripts: function(){
         var tab = this.tab;
         if (this.scriptsInjected){
-            console.log("TabAnnotator._injectScripts - already injected", tab.id);
+            this.log("injectScripts - already injected", tab.id);
             return;
         }
-        console.log("TabAnnotator._injectScripts to ", tab.id);
+        this.log("injectScripts");
 
         this.worker = tab.attach({contentScriptFile: this.scripts});
-        this.worker.port.on("AnnotatorAction", function (action, data) {
+        this.worker.port.on("AnnotatorAction", (action, data) => {
             data.templateId = tab.id;
-            console.log("AnnotatorAction", action, data);
+            this.log("AnnotatorAction", action, data);
             AppDispatcher.dispatch({
                 action: action,
                 data: data
             });
         });
         this.worker.on("detach", () => {
-            console.log("worker is detached", tab.id);
+            this.log("worker is detached");
             this.scriptsInjected = false;
         });
         this.scriptsInjected = true;

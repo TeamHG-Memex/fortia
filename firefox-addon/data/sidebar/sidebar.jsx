@@ -17,6 +17,7 @@ if (addon.mocked){
     };
 }
 
+const log = debug("sidebar:");
 
 const update = React.addons.update;
 
@@ -29,7 +30,7 @@ because it is not available in Sidebar context.
 SidebarActions = function (templateId) {
     this.templateId = templateId;
     this.emit = (action, data) => {
-        //console.log("SidebarAction", this.templateId, action, data);
+        //log("SidebarAction", this.templateId, action, data);
         addon.port.emit("SidebarAction", this.templateId, action, data);
     }
 };
@@ -475,7 +476,7 @@ var NoTemplate = React.createClass({
 
 var Sidebar = React.createClass({
     getInitialState: function() {
-        console.log("Sidebar.getInitialState()");
+        log("Sidebar.getInitialState()");
         return {template: template};
     },
 

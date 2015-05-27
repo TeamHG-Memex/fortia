@@ -9,6 +9,7 @@ var { Session } = require("./Session.js");
 var tabhtml = require('./tabhtml.js');
 var { FortiaClient } = require("./FortiaClient.js");
 var { PreviewPanel } = require("./PreviewPanel.js");
+var { Log } = require("./Log.js");
 
 /*
 Main addon code which manages the complete UI: toggle button and
@@ -17,6 +18,7 @@ and activates/deactivates them based on user actions.
 */
 function SessionManager() {
     this.sessions = {};  // tab.id => Session
+    this.log = Log("SessionManager");
 
     /* A button for showing/hiding annotation UI */
     this.toggleButton = ui.ActionButton({
@@ -78,7 +80,7 @@ SessionManager.prototype = {
 
     activateAt: function (tab, fortiaServerUrl) {
         if (this.hasSession(tab.id)){
-            console.log("SessionManager.activateAt: already activated", tab.id);
+            this.log("activateAt: already activated", tab.id);
         }
         this.sessions[tab.id] = new Session(tab, fortiaServerUrl);
         if (tab.id == tabs.activeTab.id){
@@ -92,7 +94,7 @@ SessionManager.prototype = {
 
     deactivateAt: function (tab) {
         if (!this.hasSession(tab.id)){
-            console.log("SessionManager.deactivateAt: already deactivated", tab.id);
+            this.log("deactivateAt: already deactivated", tab.id);
         }
         this.sessions[tab.id].destroy();
         delete this.sessions[tab.id];

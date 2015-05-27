@@ -5,7 +5,8 @@ var ui = require("sdk/ui");
 
 var protocol = require('./protocol.js');
 var { SessionManager } = require("./SessionManager.js");
-
+const { Log } = require('./Log.js');
+const log = Log("main");
 
 var fortia = new SessionManager();
 
@@ -20,6 +21,6 @@ tabs.activeTab.url = "http://127.0.0.1:5000";
 protocol.events.on("newChannel", function (parsed) {
     // Firefox redirects to the new URL automatically.
     // TODO: wait for redirect before displaying the annotator.
-    console.log("newChannel", parsed);
+    log("newChannel", parsed);
     fortia.activateAt(tabs.activeTab, parsed.server);
 });

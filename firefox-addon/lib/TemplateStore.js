@@ -3,13 +3,10 @@ Flux Store for annotation templates.
 */
 const { on, once, off, emit } = require('sdk/event/core');
 const { AppDispatcher } = require("./dispatcher.js");
+const { getRandomString } = require("./utils.js");
+const { Log } = require("./Log.js");
 
-
-/* Return a short random string */
-function getRandomString() {
-    return Math.random().toString(36).substr(2);
-}
-
+var log = Log("TemplateStore");
 
 var TemplateStore = {
     templates: {},  // id => template
@@ -135,7 +132,7 @@ var TemplateStore = {
 
 
 AppDispatcher.register(function(payload) {
-    console.log("AppDispatcher payload", payload);
+    log("AppDispatcher payload", payload);
     var data = payload.data;
     if (!data) {
         return;
@@ -181,12 +178,12 @@ AppDispatcher.register(function(payload) {
 
 
 TemplateStore.on("changed", function (templateId, template) {
-    console.log("TemplateStore changed", templateId, template);
+    log("changed", templateId, template);
 });
 
 /*
 TemplateStore.on("fieldRenamed", function (templateId, data) {
-    console.log("TemplateStore fieldRenamed", templateId, data);
+    log("TemplateStore fieldRenamed", templateId, data);
 });
 */
 
