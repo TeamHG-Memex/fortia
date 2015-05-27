@@ -14,6 +14,6 @@
     "title": "Fortia server URL",
     "description": "URL of Fortia server. It is required to preview the extracted data.",
     "type": "string",
-    "value": "http://127.0.0.1:5000"
+    "value": "http://127.0.0.1:5000/"
   }]
 }

@@ -1,7 +1,14 @@
+
 var ui = require("sdk/ui");
+var ss = require("sdk/simple-storage");
 var tabs = require("sdk/tabs");
+var { prefs } = require('sdk/simple-prefs');
 var { Hotkey } = require("sdk/hotkeys");
 var { Session } = require("./Session.js");
+
+var tabhtml = require('./tabhtml.js');
+var { FortiaClient } = require("./FortiaClient.js");
+var { PreviewPanel } = require("./PreviewPanel.js");
 
 /*
 Main addon code which manages the complete UI: toggle button and
@@ -18,6 +25,16 @@ function SessionManager() {
         icon: "./icons/portia-64.png",
         onClick: (state) => { this.toggleForCurrentTab() }
     });
+
+    /* A button for extracting data from the current page using stashed template */
+    // FIXME: this is temporary. We need a better UI.
+    this.extractButton = ui.ActionButton({
+        id: "extract-button",
+        label: "Extract",
+        icon: "./icons/portia-64.png",
+        onClick: (state) => { this.extractFromCurrentTab() }
+    });
+
 
     /* A shortcut: on OS X press CMD+E to activate the UI. */
     this.toggleUIhotkey = Hotkey({
@@ -44,6 +61,19 @@ SessionManager.prototype = {
     toggleForCurrentTab: function () {
         var tab = tabs.activeTab;
         this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab);
+    },
+
+    extractFromCurrentTab: function () {
+        var tab = tabs.activeTab;
+        var serverUrl = prefs['fortia-preview-server-url'];
+        var templates = ss.storage.stashedTemplates;
+
+        var fortiaClient = new FortiaClient(serverUrl);
+        var preview = new PreviewPanel(fortiaClient);
+
+        tabhtml.get(tab, (html) => {
+            preview.show(html, tab.url, templates);
+        });
     },
 
     activateAt: function (tab, fortiaServerUrl) {

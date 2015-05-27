@@ -47,6 +47,10 @@ SidebarActions.prototype = {
         this.emit("showPreview");
     },
 
+    finish: function () {
+        this.emit("finish");
+    },
+
     notifyHovered: function (fieldId) {
         this.emit("field:hovered", {fieldId: fieldId});
     },
@@ -376,6 +380,7 @@ var TemplateEditor = React.createClass({
 
         if (this.props.useFinish){
             var buttons = <FinishButtons
+                               onFinish={this.props.onFinish}
                                onPreview={this.props.onPreview}
                                onSaveAs={this.props.onSaveAs}
                                onCancel={this.props.onCancelAnnotation}
@@ -506,6 +511,10 @@ var Sidebar = React.createClass({
         this.actions.showPreview();
     },
 
+    onFinish: function () {
+        this.actions.finish();
+    },
+
     onHelp: function () {
         alert("Sorry, help is not ready yet.")
     },
@@ -546,9 +555,10 @@ var Sidebar = React.createClass({
                                 onFieldChange={onFieldChange}
                                 onFieldRemove={onFieldRemove}
                                 showEditorByIndex={this.showEditorByIndex}
-                                onCancelAnnotation={this.onCancelAnnotation}
+                                onFinish={this.onFinish}
                                 onPreview={this.onPreview}
                                 onSaveAs={this.onSaveAs}
+                                onCancelAnnotation={this.onCancelAnnotation}
                                 onHelp={this.onHelp}
                                 useFinish={true}
                 />

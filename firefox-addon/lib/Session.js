@@ -2,6 +2,7 @@
 Annotation session.
 */
 var ui = require("sdk/ui");
+var ss = require("sdk/simple-storage");
 var tabs = require("sdk/tabs");
 var { Panel } = require("sdk/panel");
 var { EventTarget } = require("sdk/event/target");
@@ -10,6 +11,7 @@ var { emit } = require('sdk/event/core');
 var dialogs = require("dialogs");
 var scrapelyUtils = require("./scrapely_utils.js");
 var { FortiaClient } = require("./FortiaClient.js");
+var { PreviewPanel } = require("./PreviewPanel.js");
 var { annotators } = require("./TabAnnotator.js");
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
@@ -36,8 +38,10 @@ function Session(tab, fortiaServerUrl) {
     this.tab = tab;
     this.destroyed = false;
     this.actions = new TemplateActions(this.tab.id);
-    this.fortiaClient = new FortiaClient(fortiaServerUrl);
     this.port = EventTarget();
+
+    this.fortiaClient = new FortiaClient(fortiaServerUrl);
+    this.preview = new PreviewPanel(this.fortiaClient);
 
     this.sidebarWorker = null;
     this.sidebar = ui.Sidebar({
@@ -68,6 +72,9 @@ function Session(tab, fortiaServerUrl) {
                     break;
                 case "showPreview":
                     this.showPreview();
+                    break;
+                case "finish":
+                    this.storeTemplate();  // TODO
                     break;
                 case "stopAnnotation":
                     emit(this.port, "stopAnnotation");
@@ -120,34 +127,22 @@ Session.prototype = {
         });
     },
 
+    storeTemplate: function () {
+        console.log("add-on script is storing the current template");
+        var url = this.tab.url;
+        this.annotator().getTemplate((html) => {
+            ss.storage.stashedTemplates = scrapelyUtils.getScrapelyTemplates(html, url);
+            console.log("add-on script saved the current template to a temporary location");
+        });
+    },
+
     showPreview: function () {
         console.log("add-on script got showPreview request");
+        var url = this.tab.url;
         this.annotator().getTemplate((html) => {
-            var templates = scrapelyUtils.getScrapelyTemplates(html, this.tab.url);
-
-            this.fortiaClient.request({
-                endpoint: "extract",
-                content: {
-                    url: this.tab.url,
-                    html: html, // FIXME: strip scrapely annotations
-                    templates: templates
-                },
-                onSuccess: (data) => {
-                    var panel = Panel({
-                        position: {bottom: 15, right: 15, left: 15},
-                        height: 200,
-                        contentURL: "./preview-panel/preview-panel.html"
-                    });
-                    panel.port.on("ready", () => {
-                        panel.port.emit("data", data.result);
-                    });
-                    panel.port.on("close", () => { panel.destroy() });
-                    panel.show();
-                },
-                onFailure: () => {
-                    console.error("Session.showPreview: error");
-                }
-            });
+            var templates = scrapelyUtils.getScrapelyTemplates(html, url);
+            // FIXME: strip scrapely annotations from html
+            this.preview.show(html, url, templates);
         });
     },
 
