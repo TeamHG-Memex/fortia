@@ -10,14 +10,14 @@ from urllib import urlencode
 
 from docopt import docopt
 from flask import Flask, request, render_template, jsonify
-from w3lib.html import replace_tags
+from w3lib.html import replace_tags, replace_entities
 import scrapely
 
 app = Flask(__name__)
 
 
 def _cleanup(value):
-    return " ".join(replace_tags(value).strip().split())
+    return " ".join(replace_entities(replace_tags(value)).strip().split())
 
 
 @app.route("/store")
