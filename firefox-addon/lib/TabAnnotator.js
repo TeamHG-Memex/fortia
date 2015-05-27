@@ -3,7 +3,7 @@ var ui = require("sdk/ui");
 
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
-var { Log } = require("./Log.js");
+var { TabLog } = require("./Log.js");
 
 
 /*
@@ -11,7 +11,7 @@ Wrapper for worker Annotator object (for a script injected into a page).
 */
 function TabAnnotator(tab){
     this.tab = tab;
-    this.log = Log("TabAnnotator: " + tab.id);
+    this.log = TabLog(tab.id, "TabAnnotator");
     this.log("creating for", tab.url);
     this.scripts = [
         "./vendor/jquery-2.1.3.js",

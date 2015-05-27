@@ -15,12 +15,12 @@ var { PreviewPanel } = require("./PreviewPanel.js");
 var { annotators } = require("./TabAnnotator.js");
 var { AppDispatcher } = require("./dispatcher.js");
 var { TemplateStore } = require("./TemplateStore.js");
-var { Log } = require("./Log.js");
+var { TabLog } = require("./Log.js");
 
 /* Action Creator */
 function TemplateActions(templateId) {
     this.templateId = templateId;
-    this.log = Log("TemplateActions: " + templateId);
+    this.log = TabLog(templateId, "TemplateActions");
 }
 
 TemplateActions.prototype = {
@@ -37,7 +37,7 @@ Annotation session object. It glues a sidebar and an in-page annotator.
 */
 function Session(tab, fortiaServerUrl) {
     this.tab = tab;
-    this.log = Log("Session: " + this.tab.id);
+    this.log = TabLog(tab.id, "Session");
     this.destroyed = false;
     this.actions = new TemplateActions(this.tab.id);
     this.port = EventTarget();
@@ -60,7 +60,7 @@ function Session(tab, fortiaServerUrl) {
         /* start listening for action requests from the sidebar */
         worker.port.on('SidebarAction', (templateId, action, data) => {
             if (templateId != this.tab.id) {
-                this.log("ERROR: invalid SidebarAction id", templateId);
+                this.log("ERROR: invalid SidebarAction id", templateId, action, data);
                 return;
             }
             switch (action){
@@ -130,11 +130,11 @@ Session.prototype = {
     },
 
     storeTemplate: function () {
-        this.log("add-on script is storing the current template");
+        this.log("storeTemplate");
         var url = this.tab.url;
         this.annotator().getTemplate((html) => {
             ss.storage.stashedTemplates = utils.getScrapelyTemplates(html, url);
-            this.log("add-on script saved the current template to a temporary location");
+            this.log("storeTemplate done");
         });
     },
 
