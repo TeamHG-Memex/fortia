@@ -20,19 +20,10 @@ def _cleanup(value):
     return " ".join(replace_entities(replace_tags(value)).strip().split())
 
 
-@app.route("/store")
-def store():
-    """ Store the template """
-    print(request.form)
-    return "ok"
-
-
 @app.route("/")
 def index():
     """ Index page """
-
-    # hardcoded example URL
-    example_url = 'http://stackoverflow.com/questions/29268299/difference-between-oracle-client-and-odac'
+    example_url = 'http://stackoverflow.com/questions/29268299/' # hardcoded example URL
     query = urlencode({'goto': example_url})
     fortia_url = "fortia:http://{host}:{port}?{query}".format(host=host, port=port, query=query)
     return render_template("index.html", fortia_url=fortia_url)
