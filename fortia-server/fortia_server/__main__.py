@@ -34,8 +34,10 @@ def get_application(config):
     return web.Application(
         handlers=get_routes(context),
         template_path=at_root("templates"),
-        compiled_template_cache=not config.is_debug(),
-        static_hash_cache=not config.is_debug(),
+        debug=config.is_debug(),
+
+        # compiled_template_cache=not config.is_debug(),
+        # static_hash_cache=not config.is_debug(),
         static_path=at_root("static"),
         compress_response=True,
     )

@@ -14,17 +14,29 @@ FILENAMES = [
 
 
 class Settings(SafeConfigParser):
+    MAIN = 'fortia-server'
+    STORAGE = 'fortia-server.storage'
+
     def is_debug(self):
-        return self.getboolean('fortia-server', 'debug')
+        return self.getboolean(self.MAIN, 'debug')
 
     def host(self):
-        return self.get('fortia-server', 'host')
+        return self.get(self.MAIN, 'host')
 
     def port(self):
-        return self.getint('fortia-server', 'port')
+        return self.getint(self.MAIN, 'port')
 
     def server_url(self):
         return "{host}:{port}".format(host=self.host(), port=self.port())
+
+    def storage_enabled(self):
+        return self.getboolean(self.STORAGE, 'enabled')
+
+    def db_uri(self):
+        return self.get(self.STORAGE, 'uri')
+
+    def db_name(self):
+        return self.get(self.STORAGE, 'db_name')
 
 
 def load(config_files=None, overrides=None):

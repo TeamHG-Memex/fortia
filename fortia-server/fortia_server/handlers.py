@@ -3,10 +3,14 @@ from __future__ import absolute_import
 import json
 from urllib import urlencode
 
-from tornado import web
+from tornado import web, gen
+from tornado.escape import json_encode
+import motor
+import pymongo
 
 from .routes import route, get_routes
 from .extraction import scrapely_extract
+from . import models
 
 
 class BaseRequestHandler(web.RequestHandler):
@@ -17,20 +21,42 @@ class BaseRequestHandler(web.RequestHandler):
         """
         self.db = db
         self.config = config
+        self.jobs = models.Jobs(db)
 
 
 @route("/")
 class Index(BaseRequestHandler):
     def get(self):
+
         # FIXME: hardcoded example URL
         fortia_url = build_fortia_url(
             self.config.server_url(),
             'http://stackoverflow.com/questions/29268299/'
         )
-        return self.render("index.html", fortia_url=fortia_url)
+        self.render("index.html", fortia_url=fortia_url)
 
 
-@route("/extract")
+@route("/jobs/?")
+class Jobs(BaseRequestHandler):
+
+    @web.addslash
+    @gen.coroutine
+    def get(self):
+        jobs = yield self.jobs.all()
+        self.render("jobs.html", jobs_json=json_encode(jobs))
+
+
+@route("/jobs/items/(.+)/?")
+class JobItems(BaseRequestHandler):
+
+    @gen.coroutine
+    def get(self, job_id):
+        last_id = self.get_argument('last_id', default=None)
+        items = yield self.jobs.items(job_id, last_id=last_id)
+        self.write({'status': 'ok', 'result': items})
+
+
+@route("/extract/?")
 class Extract(BaseRequestHandler):
     """
     Extract data from a HTML page using Scrapely templates.

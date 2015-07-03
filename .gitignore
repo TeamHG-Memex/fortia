@@ -3,3 +3,7 @@
 *.xpi
 *.json
 *.csv
+node_modules/
+fortia-server/fortia_server/static/build/
+npm-debug.log
+.ipynb_checkpoints/
