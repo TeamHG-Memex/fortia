@@ -11,6 +11,7 @@ from tornado import gen
 
 
 LATEST = ('_id', pymongo.DESCENDING)
+OLDEST = ('_id', pymongo.ASCENDING)
 
 
 class Jobs(object):
@@ -28,13 +29,13 @@ class Jobs(object):
         raise gen.Return(jobs)
 
     @gen.coroutine
-    def items(self, job_id, length=20, last_id=None):
+    def items(self, job_id, length=50, last_id=None):
 
         query = {'_job_id': ObjectId(job_id)}
         if last_id is not None:
             query['_id'] = {"$gt": ObjectId(last_id)}
 
-        cursor = self.db.items.find(query, {"body": False})
+        cursor = self.db.items.find(query, {"body": False}).sort([OLDEST])
 
         items = yield cursor.to_list(length=length)
         for item in items:
