@@ -5,8 +5,10 @@ var Reflux = require("reflux");
 var { Link } = require('react-router');
 var { Panel, Table, Button, Glyphicon, ButtonToolbar } = require("react-bootstrap");
 
+var prettyMs = require("pretty-ms");
 var JobStore = require("../stores/JobStore");
 var ItemStore = require("../stores/ItemStore");
+var { parsePythonTimestamp } = require("../utils/time");
 
 var NoJobPage = React.createClass({
     render: function () {
@@ -43,16 +45,20 @@ var ItemsTable = React.createClass({
             return <tr key={item._id}>
                 <td>{item.status}</td>
                 <td>{item.url}</td>
-                <td></td>
+                <td>{prettyMs(item.meta.download_latency*1000)}</td>
+                <td>{item.meta.depth}</td>
+                <td>{(parsePythonTimestamp(item.crawled_at) || "?").toLocaleString()}</td>
             </tr>;
         });
 
         return <Table>
             <thead>
                 <tr>
-                    <th>Status</th>
+                    <th className="col-xs-1">Status</th>
                     <th>URL</th>
-                    <th></th>
+                    <th>Latency</th>
+                    <th>Depth</th>
+                    <th>Crawled At</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
@@ -84,9 +90,11 @@ export var JobPage = React.createClass({
         if (!job){
             return <NoJobPage/>;
         }
-        return <div>
-            <ItemsTable items={items} />
-            <LoadMoreButton jobId={job._id} />
+        return <div className="row">
+            <div className="col-lg-12">
+                <ItemsTable items={items} />
+                <LoadMoreButton jobId={job._id} />
+            </div>
         </div>;
     }
 });

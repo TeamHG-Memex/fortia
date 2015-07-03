@@ -25,7 +25,7 @@ export var store = Reflux.createStore({
         this.items[jobId] = this.items[jobId] || [];
 
         var lastId = null;
-        var size = this.items[jobId].length
+        var size = this.items[jobId].length;
         if (size) {
             var lastId = this.items[jobId][size-1]._id;
         }
