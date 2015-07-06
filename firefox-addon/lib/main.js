@@ -20,7 +20,11 @@ tabs.activeTab.url = "http://127.0.0.1:5000";
 // handle fortia: links
 protocol.events.on("newChannel", function (parsed) {
     // Firefox redirects to the new URL automatically.
-    // TODO: wait for redirect before displaying the annotator.
     log("newChannel", parsed);
-    fortia.activateAt(tabs.activeTab, parsed.server);
+    var cb = function (tab) {
+        fortia.activateAt(tabs.activeTab, parsed.server);
+        log("activated", parsed);
+        tab.removeListener("ready", cb);
+    };
+    tabs.activeTab.on("ready", cb);
 });
