@@ -42,7 +42,15 @@ var ItemsTable = React.createClass({
     render: function () {
         var items = this.props.items;
         var rows = items.map(item => {
+            var serverUrl = window.location.host;
+            var gotoUrl = encodeURIComponent(item.url);
+            var fortiaUrl = "fortia:http://" + serverUrl + "?goto=" + gotoUrl;
             return <tr key={item._id}>
+                <td>
+                    <a href={fortiaUrl} className="btn btn-info btn-xs" title="Extract structured data">
+                        <Glyphicon glyph="play"/>
+                    </a>
+                </td>
                 <td>{item.status}</td>
                 <td>{item.url}</td>
                 <td>{prettyMs(item.meta.download_latency*1000)}</td>
@@ -54,11 +62,12 @@ var ItemsTable = React.createClass({
         return <Table>
             <thead>
                 <tr>
+                    <th></th>
                     <th className="col-xs-1">Status</th>
                     <th>URL</th>
                     <th>Latency</th>
                     <th>Depth</th>
-                    <th>Crawled At</th>
+                    <th style={{width:180}}>Crawled At</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
