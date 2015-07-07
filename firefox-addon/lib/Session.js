@@ -8,7 +8,7 @@ var { Panel } = require("sdk/panel");
 var { EventTarget } = require("sdk/event/target");
 var { emit } = require('sdk/event/core');
 
-var dialogs = require("dialogs");
+var dialogs = require("./dialogs");
 var utils = require("./utils.js");
 var { FortiaClient } = require("./FortiaClient.js");
 var { PreviewPanel } = require("./PreviewPanel.js");

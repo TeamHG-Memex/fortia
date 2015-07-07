@@ -1,6 +1,6 @@
 {
-  "name": "fortia",
   "title": "Fortia",
+  "name": "fortia",
   "id": "@fortia",
   "main": "lib/main.js",
   "description": "Fortia is an open source extension for automatic data extraction. It provides a GUI for creating Scrapely templates.",
@@ -9,11 +9,23 @@
   "version": "0.0.1",
   "icon": "data/icons/portia-64-active.png",
   "homepage": "https://github.com/TeamHG-Memex/fortia",
-  "preferences": [{
-    "name": "fortia-preview-server-url",
-    "title": "Fortia server URL",
-    "description": "URL of Fortia server. It is required to preview the extracted data.",
-    "type": "string",
-    "value": "http://127.0.0.1:5000/"
-  }]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TeamHG-Memex/fortia.git"
+  },
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "preferences": [
+    {
+      "name": "fortia-preview-server-url",
+      "title": "Fortia server URL",
+      "description": "URL of Fortia server. It is required to preview the extracted data.",
+      "type": "string",
+      "value": "http://127.0.0.1:5000/"
+    }
+  ],
+  "devDependencies": {
+    "jpm": "^1.0.0"
+  }
 }

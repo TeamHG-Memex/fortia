@@ -1,6 +1,22 @@
 Fortia Firefox Plugin
 =====================
 
+Installation
+------------
+
+Install JS dependencies using npm::
+
+    npm install
+
+Run the extension::
+
+    jpm run
+
+To create an XPI file (which can be droppen in Firefox) use the following
+command::
+
+    jpm xpi
+
 Architecture
 ------------
 

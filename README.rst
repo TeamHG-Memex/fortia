@@ -6,14 +6,12 @@ It uses scrapely_ uner the hood.
 
 License is MIT.
 
+.. _scrapely: https://github.com/scrapy/scrapely
+
 Running
 -------
 
-To run the extension, install cfx_, then change folder to
-`firefox-addon` and execute `cfx run` from the command line.
-
-.. _scrapely: https://github.com/scrapy/scrapely
-.. _cfx: https://developer.mozilla.org/en-US/Add-ons/SDK/Tutorials/Installation
+To run the addon see :file:`firefox-addon/README.rst`.
 
 To use all extension features you also need a Python Fortia server running.
 To start it, change folder to `fortia-server`, install all Python requirements
