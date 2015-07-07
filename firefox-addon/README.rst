@@ -16,7 +16,7 @@ Run the extension::
 
     jpm run
 
-To create an XPI file (which can be droppen in Firefox) use the following
+To create an XPI file (which you can drop to Firefox) use the following
 command::
 
     jpm xpi
