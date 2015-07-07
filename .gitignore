@@ -2,6 +2,7 @@
 *.pyc
 *.xpi
 *.json
+!fortia-server/package.json
 *.csv
 node_modules/
 fortia-server/fortia_server/static/build/
