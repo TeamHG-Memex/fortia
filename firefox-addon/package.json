@@ -24,8 +24,5 @@
       "type": "string",
       "value": "http://127.0.0.1:5000/"
     }
-  ],
-  "devDependencies": {
-    "jpm": "^1.0.0"
-  }
+  ]
 }

@@ -8,6 +8,10 @@ Install JS dependencies using npm::
 
     npm install
 
+Then install jpm::
+
+    npm install -g jpm
+
 Run the extension::
 
     jpm run
