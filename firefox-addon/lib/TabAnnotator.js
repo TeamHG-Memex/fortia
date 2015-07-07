@@ -63,6 +63,7 @@ TabAnnotator.prototype = {
     },
 
     update: function(){
+        this.injectScripts();
         if (this.active) {
             this.log("update: activate", this.worker.tab.id);
             this.worker.port.emit("activate");
