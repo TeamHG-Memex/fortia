@@ -19,7 +19,7 @@ To start it, change folder to `fortia-server`, install all Python requirements
 
     cd fortia-server
     pip install -r requirements.txt
-    python -m fortia_server --debug
+    ./fortia-server.py --debug
 
 Project Structure
 -----------------
