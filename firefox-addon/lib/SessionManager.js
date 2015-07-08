@@ -63,7 +63,8 @@ SessionManager.prototype = {
 
     toggleForCurrentTab: function () {
         var tab = tabs.activeTab;
-        this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab);
+        var fortiaServerURL = prefs['fortia-preview-server-url'];
+        this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab, fortiaServerURL);
     },
 
     extractFromCurrentTab: function () {

@@ -1,6 +1,5 @@
 /* Utilities to show a preview of the extracted data */
 var { Panel } = require("sdk/panel");
-var { FortiaClient } = require("./FortiaClient.js");
 var { Log } = require("./Log.js");
 
 
