@@ -6,20 +6,16 @@ Installation
 
 Install JS dependencies using npm::
 
-    npm install
-
-Then install jpm::
-
-    npm install -g jpm
+    npm install --dev
 
 Run the extension::
 
-    jpm run
+    npm run ff
 
 To create an XPI file (which you can drop to Firefox) use the following
 command::
 
-    jpm xpi
+    npm run xpi
 
 Architecture
 ------------

@@ -63,35 +63,7 @@ function Session(tab, fortiaServerUrl) {
                 this.log("ERROR: invalid SidebarAction id", templateId, action, data);
                 return;
             }
-            switch (action){
-                case "renameField":
-                case "removeField":
-                case "startEditing":
-                    this.actions.emit(action, data);
-                    break;
-                case "saveTemplateAs":
-                    this.saveTemplateAs();
-                    break;
-                case "showPreview":
-                    this.showPreview();
-                    break;
-                case "finish":
-                    this.storeTemplate(() => {
-                        emit(this.port, "stopAnnotation");
-                    });
-                    break;
-                case "stopAnnotation":
-                    emit(this.port, "stopAnnotation");
-                    break;
-                case "field:hovered":
-                    this.annotator().highlightField(data);
-                    break;
-                case "field:unhovered":
-                    this.annotator().unhighlightField(data);
-                    break;
-                default:
-                    throw Error("unknown SidebarAction: " + action);
-            }
+            this.handleEvent(action, data);
         });
     });
     this.sidebar.on('detach', () => { this.sidebarWorker = null });
@@ -115,6 +87,38 @@ function Session(tab, fortiaServerUrl) {
 }
 
 Session.prototype = {
+    handleEvent: function (action, data) {
+        switch (action){
+            case "renameField":
+            case "removeField":
+            case "startEditing":
+                this.actions.emit(action, data);
+                break;
+            case "saveTemplateAs":
+                this.saveTemplateAs();
+                break;
+            case "showPreview":
+                this.showPreview();
+                break;
+            case "finishAnnotation":
+                this.storeTemplate(() => {
+                    emit(this.port, "stopAnnotation");
+                });
+                break;
+            case "stopAnnotation":
+                emit(this.port, "stopAnnotation");
+                break;
+            case "field:hovered":
+                this.annotator().highlightField(data);
+                break;
+            case "field:unhovered":
+                this.annotator().unhighlightField(data);
+                break;
+            default:
+                throw Error("unknown SidebarAction: " + action);
+        }
+    },
+
     _sendToWorker: function () {
         if (!this.sidebarWorker){
             this.log("no sidebarWorker");
@@ -127,7 +131,8 @@ Session.prototype = {
     saveTemplateAs: function () {
         this.log("add-on script got saveTemplateAs request");
         this.annotator().getTemplate((html) => {
-            saveTemplateToFile(html, this.tab.url);
+            var templates = utils.getScrapelyTemplates(html, this.tab.url);
+            utils.saveScraperToFile(templates);
         });
     },
 
@@ -178,16 +183,5 @@ Session.prototype = {
     }
 };
 
-
-/* Ask user where to save the template and save it. */
-var nextSuggestedIndex = 0;
-var saveTemplateToFile = function (html, url) {
-    var filename = "scraper-" + nextSuggestedIndex + ".json";
-    var data = utils.getScraperJSON(html, url);
-    var ok = dialogs.save("Save the template", filename, data);
-    if (ok){
-        nextSuggestedIndex += 1;
-    }
-};
 
 exports.Session = Session;

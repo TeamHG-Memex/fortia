@@ -49,7 +49,7 @@ SidebarActions.prototype = {
     },
 
     finish: function () {
-        this.emit("finish");
+        this.emit("finishAnnotation");
     },
 
     notifyHovered: function (fieldId) {
@@ -379,25 +379,26 @@ var TemplateEditor = React.createClass({
             }
         });
 
-        if (this.props.useFinish){
-            var buttons = <FinishButtons
-                               onFinish={this.props.onFinish}
-                               onPreview={this.props.onPreview}
-                               onSaveAs={this.props.onSaveAs}
-                               onCancel={this.props.onCancelAnnotation}
-                               onHelp={this.props.onHelp} />;
-        }
-        else {
-            var buttons = <SaveAsButton
-                               onSaveAs={this.props.onSaveAs}
-                               onCancel={this.props.onCancelAnnotation}
-                               onHelp={this.props.onHelp} />;
-        }
+        //if (this.props.useFinish){
+        //    var buttons = <FinishButtons
+        //                       onFinish={this.props.onFinish}
+        //                       onPreview={this.props.onPreview}
+        //                       onSaveAs={this.props.onSaveAs}
+        //                       onCancel={this.props.onCancelAnnotation}
+        //                       onHelp={this.props.onHelp} />;
+        //}
+        //else {
+        //    var buttons = <SaveAsButton
+        //                       onSaveAs={this.props.onSaveAs}
+        //                       onCancel={this.props.onCancelAnnotation}
+        //                       onHelp={this.props.onHelp} />;
+        //}
+        //
+        //{buttons}
+        //<div>&nbsp;</div>
 
         return (
             <div className="container">
-                {buttons}
-                <div>&nbsp;</div>
                 <BootstrapListGroup>{items}</BootstrapListGroup>
             </div>
         );
@@ -548,7 +549,7 @@ var Sidebar = React.createClass({
 
         return (
             <div>
-                <FortiaHeader />
+                <br/>
                 <TemplateEditor ref="editor" key={tpl.key} fields={tpl.fields}
                                 onFieldMouseEnter={onEnter}
                                 onFieldMouseLeave={onLeave}
