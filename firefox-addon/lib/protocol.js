@@ -6,7 +6,7 @@ Links should be in the following format:
 
 Example:
 
-    fortia:http://127.0.0.1:5000/foo?goto=http%3A%2F%2Fstackoverflow.com%2Fquestions%2F29268299%2Fdifference-between-oracle-client-and-odac
+    fortia:http://127.0.0.1:5000/foo?goto=http%3A%2F%2Fstackoverflow.com%2Fquestions%2F29268299
 
 <server-address> is an address of Fortia server which is used to store the
 annotation results.

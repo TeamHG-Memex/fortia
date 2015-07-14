@@ -3,9 +3,6 @@ var ui = require("sdk/ui");
 var { Log } = require("./Log");
 
 
-var { AppDispatcher } = require("./dispatcher.js");
-
-
 function Toolbar(onMessage) {
     this.log = Log("Toolbar");
     this.frame = new ui.Frame({
