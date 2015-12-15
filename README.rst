@@ -2,7 +2,7 @@ Fortia
 ======
 
 Firefox extension for automatic data extraction.
-It uses scrapely_ uner the hood.
+It uses scrapely_ under the hood.
 
 License is MIT.
 
