@@ -4,12 +4,14 @@ var ss = require("sdk/simple-storage");
 var tabs = require("sdk/tabs");
 var { prefs } = require('sdk/simple-prefs');
 var { Hotkey } = require("sdk/hotkeys");
-var { Session } = require("./Session.js");
 
+var utils = require("./utils.js");
 var tabhtml = require('./tabhtml.js');
 var { FortiaClient } = require("./FortiaClient.js");
 var { PreviewPanel } = require("./PreviewPanel.js");
 var { Log } = require("./Log.js");
+var { Session } = require("./Session.js");
+var { Toolbar } = require("./Toolbar.js");
 
 /*
 Main addon code which manages the complete UI: toggle button and
@@ -38,6 +40,29 @@ function SessionManager() {
         onClick: (state) => { this.extractFromCurrentTab() }
     });
 
+    this.toolbar = new Toolbar((action, data) => {
+        var tab = tabs.activeTab;
+        this.log("toolbar action", action, data);
+
+        switch (action) {
+            case 'startAnnotation':
+                this.activateAt(tab);
+                break;
+            case 'showPreview':
+                this.extractFromCurrentTab();
+                break;
+            case 'saveTemplateAs':
+                this.saveTemplateAs();
+                break;
+            default:
+                if (!this.hasSession(tab.id)){
+                    this.log("Annotation session is not found for the current tab");
+                }
+
+                var session = this.sessions[tab.id];
+                session.handleEvent(action, data);
+        }
+    });
 
     /* A shortcut: on OS X press CMD+E to activate the UI. */
     this.toggleUIhotkey = Hotkey({
@@ -46,7 +71,7 @@ function SessionManager() {
     });
 
     tabs.on("activate", (tab) => {
-        this.setButtonHighlighted(this.hasSession(tab.id));
+        this.setButtonsHighlighted(this.hasSession(tab.id));
 
         Object.keys(this.sessions).forEach((tabId) => {
             if (!this.hasSession(tabId)) {
@@ -63,8 +88,12 @@ SessionManager.prototype = {
 
     toggleForCurrentTab: function () {
         var tab = tabs.activeTab;
-        var fortiaServerURL = prefs['fortia-preview-server-url'];
-        this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab, fortiaServerURL);
+        this.hasSession(tab.id) ? this.deactivateAt(tab) : this.activateAt(tab);
+    },
+
+    saveTemplateAs: function () {
+        var templates = utils.mergeScrapelyTemplates(ss.storage.stashedTemplates || []);
+        utils.saveScraperToFile(templates);
     },
 
     extractFromCurrentTab: function () {
@@ -80,13 +109,18 @@ SessionManager.prototype = {
         });
     },
 
-    activateAt: function (tab, fortiaServerUrl) {
+    activateAt: function (tab, fortiaServerURL) {
         if (this.hasSession(tab.id)){
             this.log("activateAt: already activated", tab.id);
         }
-        this.sessions[tab.id] = new Session(tab, fortiaServerUrl);
+
+        if (!fortiaServerURL){
+            fortiaServerURL = prefs['fortia-preview-server-url'];
+        }
+
+        this.sessions[tab.id] = new Session(tab, fortiaServerURL);
         if (tab.id == tabs.activeTab.id){
-            this.setButtonHighlighted(true);
+            this.setButtonsHighlighted(true);
         }
 
         this.sessions[tab.id].port.on("stopAnnotation", () => {
@@ -104,7 +138,7 @@ SessionManager.prototype = {
         this.sessions[tab.id].destroy();
         delete this.sessions[tab.id];
         if (tab.id == tabs.activeTab.id) {
-            this.setButtonHighlighted(false);
+            this.setButtonsHighlighted(false);
         }
     },
 
@@ -113,9 +147,10 @@ SessionManager.prototype = {
         return session && !session.destroyed;
     },
 
-    setButtonHighlighted: function (active) {
+    setButtonsHighlighted: function (active) {
         var icon = active ? "./icons/portia-64-active.png" : "./icons/portia-64.png";
         this.toggleButton.state("tab", {icon: icon});
+        this.toolbar.setActive(active);
     }
 };
 
